@@ -58,13 +58,13 @@ jobs:
         run: |
           ver=$(sed -n 's/^project(dirty630 VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
           mkdir -p dist
-          sh installer/macos/make_pkg.sh build/dirty630_artefacts/VST3/dirty630.vst3 "$ver" "dist/dirty630-$ver-macos.pkg"
+          sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 "$ver" "dist/dirty630-$ver-macos.pkg"
 
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
           name: dirty630-macos-vst3
-          path: build/dirty630_artefacts/VST3/dirty630.vst3
+          path: build/dirty630_artefacts/Release/VST3/dirty630.vst3
           if-no-files-found: error
 
       - name: Upload installer
