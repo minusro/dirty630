@@ -22,30 +22,27 @@ AudioProcessorValueTreeState::ParameterLayout Dirty630Processor::createLayout()
 
     auto msText = [] (float v, int) { return v < 1.0f ? String (v, 2) + " ms" : (v < 1000.0f ? String (v, v < 10.0f ? 1 : 0) + " ms" : String (v / 1000.0f, 2) + " s"); };
 
-    for (int c = 0; c < 2; ++c)
-    {
-        const String suffix = c == 0 ? " A" : " B";
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::threshold, c), 1 }, "Threshold" + suffix,
-                        NormalisableRange<float> (-40.0f, 20.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::ratio, c), 1 }, "Ratio" + suffix,
-                        ratioRange, 4.0f, AudioParameterFloatAttributes().withStringFromValueFunction (ratioText)));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::attack, c), 1 }, "Attack" + suffix,
-                        NormalisableRange<float> (0.1f, 200.0f, 0.01f, 0.3f), 10.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::release, c), 1 }, "Release" + suffix,
-                        NormalisableRange<float> (50.0f, 3000.0f, 1.0f, 0.4f), 300.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::output, c), 1 }, "Output" + suffix,
-                        NormalisableRange<float> (-20.0f, 20.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
-        layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::peak, c), 1 }, "Peak" + suffix, false));
-        layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::soft, c), 1 }, "Soft Knee" + suffix, false));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::gateThr, c), 1 }, "Gate Threshold" + suffix,
-                        NormalisableRange<float> (-70.0f, 10.0f, 0.1f), -70.0f,
-                        AudioParameterFloatAttributes().withStringFromValueFunction ([] (float v, int) { return v <= -70.0f ? String ("Off") : String (v, 1) + " dB"; })));
-        layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::gateRate, c), 1 }, "Gate Rate" + suffix,
-                        NormalisableRange<float> (20.0f, 2000.0f, 1.0f, 0.4f), 100.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
-        layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::bypass, c), 1 }, "Bypass" + suffix, false));
-    }
+    // One set of controls drives both channels.  The IDs keep their old "A"
+    // suffix (ids::ch (name, 0)) so early sessions and automation still load.
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::threshold, 0), 1 }, "Threshold",
+                    NormalisableRange<float> (-40.0f, 20.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::ratio, 0), 1 }, "Ratio",
+                    ratioRange, 4.0f, AudioParameterFloatAttributes().withStringFromValueFunction (ratioText)));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::attack, 0), 1 }, "Attack",
+                    NormalisableRange<float> (0.1f, 200.0f, 0.01f, 0.3f), 10.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::release, 0), 1 }, "Release",
+                    NormalisableRange<float> (50.0f, 3000.0f, 1.0f, 0.4f), 300.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::output, 0), 1 }, "Output",
+                    NormalisableRange<float> (-20.0f, 20.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::peak, 0), 1 }, "Peak", false));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::soft, 0), 1 }, "Soft Knee", false));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::gateThr, 0), 1 }, "Gate Threshold",
+                    NormalisableRange<float> (-70.0f, 10.0f, 0.1f), -70.0f,
+                    AudioParameterFloatAttributes().withStringFromValueFunction ([] (float v, int) { return v <= -70.0f ? String ("Off") : String (v, 1) + " dB"; })));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::gateRate, 0), 1 }, "Gate Rate",
+                    NormalisableRange<float> (20.0f, 2000.0f, 1.0f, 0.4f), 100.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::bypass, 0), 1 }, "Bypass", false));
 
-    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::link, 1 }, "Stereo Link", true));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::inputTrim, 1 }, "Input Trim",
                     NormalisableRange<float> (-12.0f, 24.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::calib, 1 }, "0 dBFS =",
@@ -103,25 +100,22 @@ void Dirty630Processor::updateParameters()
 {
     auto get = [this] (const String& id) { return apvts.getRawParameterValue (id)->load(); };
 
-    for (int c = 0; c < 2; ++c)
-    {
-        dirty630::ChannelParams p;
-        p.thresholdDbu  = get (ids::ch (ids::threshold, c));
-        const float r   = get (ids::ch (ids::ratio, c));
-        p.ratio         = r >= 99.0f ? 1.0e6 : (double) r;
-        p.attackSec     = get (ids::ch (ids::attack, c))  * 1e-3;
-        p.releaseSec    = get (ids::ch (ids::release, c)) * 1e-3;
-        p.outputDb      = get (ids::ch (ids::output, c));
-        p.peakMode      = get (ids::ch (ids::peak, c)) > 0.5f;
-        p.softKnee      = get (ids::ch (ids::soft, c)) > 0.5f;
-        p.gateThreshDbu = get (ids::ch (ids::gateThr, c));
-        p.gateRateSec   = get (ids::ch (ids::gateRate, c)) * 1e-3;
-        p.bypass        = get (ids::ch (ids::bypass, c)) > 0.5f;
-        model.setChannelParams (c, p);
-    }
+    dirty630::ChannelParams p;
+    p.thresholdDbu  = get (ids::ch (ids::threshold, 0));
+    const float r   = get (ids::ch (ids::ratio, 0));
+    p.ratio         = r >= 99.0f ? 1.0e6 : (double) r;
+    p.attackSec     = get (ids::ch (ids::attack, 0))  * 1e-3;
+    p.releaseSec    = get (ids::ch (ids::release, 0)) * 1e-3;
+    p.outputDb      = get (ids::ch (ids::output, 0));
+    p.peakMode      = get (ids::ch (ids::peak, 0)) > 0.5f;
+    p.softKnee      = get (ids::ch (ids::soft, 0)) > 0.5f;
+    p.gateThreshDbu = get (ids::ch (ids::gateThr, 0));
+    p.gateRateSec   = get (ids::ch (ids::gateRate, 0)) * 1e-3;
+    p.bypass        = get (ids::ch (ids::bypass, 0)) > 0.5f;
+    model.setChannelParams (0, p);
+    model.setChannelParams (1, p);
 
     dirty630::GlobalParams g;
-    g.stereoLink        = get (ids::link) > 0.5f;
     g.inputTrimDb       = get (ids::inputTrim);
     g.calibDbuAt0dBFS   = get (ids::calib);
     g.thump             = get (ids::thump);

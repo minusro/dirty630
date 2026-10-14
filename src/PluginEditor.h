@@ -54,7 +54,7 @@ private:
     void makeKnob (Knob&, const juce::String& paramId, const juce::String& text);
     void makeToggle (Toggle&, const juce::String& paramId, const juce::String& text);
 
-    Dirty630Processor& processor;
+    Dirty630Processor& proc;
     Dirty630LookAndFeel lnf;
 
     struct ChannelStrip
@@ -62,11 +62,10 @@ private:
         Knob threshold, ratio, attack, release, output, gateThr, gateRate;
         Toggle peak, soft, bypass;
         GrMeter meter;
-        juce::Label name;
-    } strips[2];
+    } strip;
 
     Knob inputTrim, calib, thump, noise, mismatch;
-    Toggle link, extSc;
+    Toggle extSc;
     juce::ComboBox oversamp;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oversampAttachment;
     juce::Label oversampLabel, dirtLabel;

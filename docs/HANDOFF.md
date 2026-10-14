@@ -1,22 +1,37 @@
 # Handoff — state of the project
 
-_Last updated: 2026-10-14. Update this file at the end of every session._
+_Last updated: 2026-10-14 (second session, on the Mac). Update this file at
+the end of every session._
 
 ## Where things stand
 
-The whole plugin exists and compiles. It has **not yet been built or heard on
-macOS**; everything so far was done in a Linux cloud workspace.
+Version 0.2. Built, validated and rendered on macOS. The repo lives at
+`~/Documents/JUCE/dirty630` on Daniel's Mac.
 
 | Item | State |
 |---|---|
-| DSP model (`src/dsp/`) | Written from the circuit; 30 automated checks pass at 96 kHz |
-| JUCE processor | Done: stereo + optional sidechain bus, 1×/2×/4× oversampling, APVTS state |
-| Editor | Done: two channel strips, 12-segment GR ladders, DIRT section |
-| Linux VST3 build | Compiles clean (JUCE 8.0.4, GCC 13) with X11 extensions disabled |
-| macOS build | **Untested.** CMake is set up for universal VST3/AU/Standalone |
-| `auval` / pluginval | **Not run** |
+| DSP model (`src/dsp/`) | 30 automated checks pass at 96 kHz, on AppleClang too |
+| JUCE processor | One set of controls for both channels; detector = mono sum of input (or of ext SC); stereo + optional sidechain bus, 1×/2×/4× oversampling, APVTS state |
+| Editor | One channel strip + DIRT row, 980×300; header shows `version m.n - build date/time - minusro`, stamped each build |
+| macOS build | Universal VST3/AU/Standalone build clean (Xcode 26.3); one `-Wshadow-field` fixed |
+| `auval` | **Passed** (`aufx D630 Mnro`) |
+| pluginval | **Passed** at strictness 5 (VST3) |
 | Listening test | **Not done** |
+| Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
+
+## Changed in 0.2 (this session)
+
+- **Single control set.** The two per-channel strips and the Link switch are
+  gone; one row drives both VCAs. Parameter IDs keep the `A` suffix; the `B`
+  set and `link` were deleted (nothing had shipped, so no state to preserve).
+- **Mono-sum detector.** Both RMS sensors get the mono sum of the stereo
+  programme, or of the external sidechain when EXT SC is on (`MODEL.md`,
+  "Shared detection"). Mismatch still spreads the two channels.
+- **Version/build stamp** in the header; policy in `CLAUDE.md`
+  (`cmake/BuildInfo.cmake` regenerates `BuildInfo.h` every build).
+- Editor bottom row was clipped by the old 430 px window; the single-strip
+  layout is 300 px and everything fits.
 
 ## What was verified, numerically
 
@@ -32,18 +47,15 @@ From `tests/dsp_tests.cpp` (run `./dirty630_tests` to see the table):
 - THD at +4 dBu: 0.028 % at 0 dB GR → 0.123 % at 20 dB GR.
 - +24 dBu in: output pinned at 22.8 dBu, 11 % THD (rail clipping).
 - Thump: fast 20 dB gain step produces a −44 dBFS DC transient at Thump = 1.
-- Link: loud L / quiet R → identical 12.6 dB GR on both.
+- Link: loud L / quiet R → identical 10.4 dB GR on both (mono-sum detector).
 
 ## Immediate next steps (in order)
 
-1. **Build on a Mac** (`docs/BUILD.md`). Expect possible warnings-as-errors
-   from `juce_recommended_warning_flags` under AppleClang that GCC didn't flag;
-   fix in source, don't disable the flags.
-2. Run `auval -v aufx D630 Mnro` and pluginval (strictness 5+) on the VST3.
-3. Open the Standalone, feed a drum loop, and sanity-listen: does Thump do
+1. Open the Standalone, feed a drum loop, and sanity-listen: does Thump do
    anything audible at 0.1 ms attack? Does the gate chatter? Is the GR ladder
    sensible?
-4. Then go to `docs/ROADMAP.md`.
+2. Windows build via GitHub Actions (no local Windows toolchain).
+3. Then go to `docs/ROADMAP.md`.
 
 ## Decisions already taken (don't re-litigate without reason)
 
@@ -61,6 +73,9 @@ From `tests/dsp_tests.cpp` (run `./dirty630_tests` to see the table):
   than baked in. Default 0.5 each.
 - **Licence GPLv3**, which the repo already had and which works with JUCE's
   GPL licence.
+- **Always linked, one control set** (0.2, Daniel's call). Detection runs on
+  the mono sum; there is no dual-mono mode. The hardware's per-channel strips
+  are not coming back without a new decision.
 
 ## Known gaps / things that look wrong
 
@@ -73,6 +88,7 @@ From `tests/dsp_tests.cpp` (run `./dirty630_tests` to see the table):
   automated. Cheap to add with `juce::SmoothedValue`.
 - Sidechain is used at host rate inside the oversampled loop (zero-order
   hold). Fine for the 20 ms detector, but worth a comment if anyone profiles.
-- The editor was never rendered. Layout numbers in `resized()` are untested.
 - `dirty630_tests` prints to stdout rather than using a test framework. Fine
   for now; don't pull in Catch2 unless it earns it.
+- The Standalone starts with "audio input muted to avoid feedback"; remember
+  to enable input (or play a file through it in a DAW) for the listening pass.

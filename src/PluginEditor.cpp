@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include "BuildInfo.h"
 
 using namespace juce;
 
@@ -127,42 +128,33 @@ void GrMeter::paint (Graphics& g)
 
 //==============================================================================
 Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
-    : AudioProcessorEditor (p), processor (p)
+    : AudioProcessorEditor (p), proc (p)
 {
     setLookAndFeel (&lnf);
 
-    for (int c = 0; c < 2; ++c)
-    {
-        auto& s = strips[c];
-        makeKnob (s.threshold, ids::ch (ids::threshold, c), "THRESHOLD");
-        makeKnob (s.ratio,     ids::ch (ids::ratio, c),     "RATIO");
-        makeKnob (s.attack,    ids::ch (ids::attack, c),    "ATTACK");
-        makeKnob (s.release,   ids::ch (ids::release, c),   "RELEASE");
-        makeKnob (s.output,    ids::ch (ids::output, c),    "OUTPUT");
-        makeKnob (s.gateThr,   ids::ch (ids::gateThr, c),   "GATE THRESH");
-        makeKnob (s.gateRate,  ids::ch (ids::gateRate, c),  "GATE RATE");
-        makeToggle (s.peak,   ids::ch (ids::peak, c),   "PEAK");
-        makeToggle (s.soft,   ids::ch (ids::soft, c),   "SOFT");
-        makeToggle (s.bypass, ids::ch (ids::bypass, c), "BYPASS");
-        addAndMakeVisible (s.meter);
-        s.name.setText (c == 0 ? "A" : "B", dontSendNotification);
-        s.name.setFont (Font (FontOptions (26.0f, Font::bold)));
-        s.name.setColour (Label::textColourId, kLegend);
-        s.name.setJustificationType (Justification::centred);
-        addAndMakeVisible (s.name);
-    }
+    auto& s = strip;
+    makeKnob (s.threshold, ids::ch (ids::threshold, 0), "THRESHOLD");
+    makeKnob (s.ratio,     ids::ch (ids::ratio, 0),     "RATIO");
+    makeKnob (s.attack,    ids::ch (ids::attack, 0),    "ATTACK");
+    makeKnob (s.release,   ids::ch (ids::release, 0),   "RELEASE");
+    makeKnob (s.output,    ids::ch (ids::output, 0),    "OUTPUT");
+    makeKnob (s.gateThr,   ids::ch (ids::gateThr, 0),   "GATE THRESH");
+    makeKnob (s.gateRate,  ids::ch (ids::gateRate, 0),  "GATE RATE");
+    makeToggle (s.peak,   ids::ch (ids::peak, 0),   "PEAK");
+    makeToggle (s.soft,   ids::ch (ids::soft, 0),   "SOFT");
+    makeToggle (s.bypass, ids::ch (ids::bypass, 0), "BYPASS");
+    addAndMakeVisible (s.meter);
 
     makeKnob (inputTrim, ids::inputTrim, "INPUT");
     makeKnob (calib,     ids::calib,     "0 dBFS =");
     makeKnob (thump,     ids::thump,     "THUMP");
     makeKnob (noise,     ids::noise,     "NOISE");
     makeKnob (mismatch,  ids::mismatch,  "MISMATCH");
-    makeToggle (link,  ids::link,  "STEREO");
     makeToggle (extSc, ids::extSc, "EXT SC");
 
     oversamp.addItemList ({ "1x", "2x", "4x" }, 1);
     addAndMakeVisible (oversamp);
-    oversampAttachment = std::make_unique<AudioProcessorValueTreeState::ComboBoxAttachment> (processor.apvts, ids::oversamp, oversamp);
+    oversampAttachment = std::make_unique<AudioProcessorValueTreeState::ComboBoxAttachment> (proc.apvts, ids::oversamp, oversamp);
     oversampLabel.setText ("OVERSAMPLE", dontSendNotification);
     oversampLabel.setJustificationType (Justification::centred);
     addAndMakeVisible (oversampLabel);
@@ -172,7 +164,7 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
     dirtLabel.setColour (Label::textColourId, kKnobRing);
     addAndMakeVisible (dirtLabel);
 
-    setSize (980, 430);
+    setSize (980, 300);
     startTimerHz (30);
 }
 
@@ -191,32 +183,31 @@ void Dirty630Editor::makeKnob (Knob& k, const String& paramId, const String& tex
     k.label.setJustificationType (Justification::centred);
     k.label.setColour (Label::textColourId, kLegendDim);
     addAndMakeVisible (k.label);
-    k.attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.apvts, paramId, k.slider);
+    k.attachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (proc.apvts, paramId, k.slider);
 }
 
 void Dirty630Editor::makeToggle (Toggle& t, const String& paramId, const String& text)
 {
     t.button.setButtonText (text);
     addAndMakeVisible (t.button);
-    t.attachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.apvts, paramId, t.button);
+    t.attachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (proc.apvts, paramId, t.button);
 }
 
 void Dirty630Editor::paint (Graphics& g)
 {
     g.fillAll (kPanel);
 
-    // Brushed stripe between the two channels, and a rack-rail edge.
+    // Brushed header stripe and a rack-rail edge above the global row.
     g.setColour (kPanelHi);
     g.fillRect (0, 0, getWidth(), 34);
     g.fillRect (0, 196, getWidth(), 2);
-    g.fillRect (0, 350, getWidth(), 2);
 
     g.setColour (kLegend);
     g.setFont (Font (FontOptions (20.0f, Font::bold)));
     g.drawText ("dirty630", 16, 4, 200, 26, Justification::centredLeft);
     g.setColour (kLegendDim);
     g.setFont (Font (FontOptions (11.0f)));
-    g.drawText ("WHITE-BOX MODEL OF A BUDGET STEREO VCA COMPRESSOR / GATE", 130, 4, 500, 26, Justification::centredLeft);
+    g.drawText ("version " DIRTY630_VERSION "  -  " DIRTY630_BUILD_TIME "  -  minusro", 130, 4, 500, 26, Justification::centredLeft);
 }
 
 void Dirty630Editor::resized()
@@ -224,9 +215,7 @@ void Dirty630Editor::resized()
     auto layoutStrip = [this] (ChannelStrip& s, int top)
     {
         const int knobW = 86, knobH = 96, labelH = 14;
-        int x = 16;
-        s.name.setBounds (x, top + 30, 30, 40);
-        x += 40;
+        int x = 24;
         Knob* knobs[] = { &s.threshold, &s.ratio, &s.attack, &s.release, &s.output };
         for (auto* k : knobs)
         {
@@ -250,13 +239,11 @@ void Dirty630Editor::resized()
         s.meter.setBounds (x, top + 50, getWidth() - x - 16, 40);
     };
 
-    layoutStrip (strips[0], 40);
-    layoutStrip (strips[1], 200);
+    layoutStrip (strip, 40);
 
     // Bottom row: global and "dirt" controls.
-    const int top = 356, knobW = 80, knobH = 68;
+    const int top = 206, knobW = 80, knobH = 68;
     int x = 16;
-    link.button.setBounds (x, top + 20, 70, 24);  x += 80;
     extSc.button.setBounds (x, top + 20, 70, 24); x += 90;
     for (auto* k : { &inputTrim, &calib })
     {
@@ -279,6 +266,6 @@ void Dirty630Editor::resized()
 
 void Dirty630Editor::timerCallback()
 {
-    for (int c = 0; c < 2; ++c)
-        strips[c].meter.setValue (processor.grMeter[c].load());
+    // One ladder for both VCAs; they only differ by the Mismatch spread.
+    strip.meter.setValue (jmax (proc.grMeter[0].load(), proc.grMeter[1].load()));
 }

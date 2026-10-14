@@ -8,7 +8,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "" FORCE)
 endif()
 
-project(dirty630 VERSION 0.1.0 LANGUAGES C CXX)
+project(dirty630 VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -70,6 +70,17 @@ if(DIRTY630_BUILD_PLUGIN)
     target_sources(dirty630 PRIVATE
         src/PluginProcessor.cpp
         src/PluginEditor.cpp)
+
+    # BuildInfo.h carries the displayed version (major.minor, policy in
+    # CLAUDE.md) and is re-stamped with the build time on every build.
+    add_custom_target(dirty630_buildinfo
+        COMMAND ${CMAKE_COMMAND}
+            -DOUT=${CMAKE_BINARY_DIR}/generated/BuildInfo.h
+            -DVERSION=${PROJECT_VERSION}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BuildInfo.cmake
+        BYPRODUCTS ${CMAKE_BINARY_DIR}/generated/BuildInfo.h)
+    add_dependencies(dirty630 dirty630_buildinfo)
+    target_include_directories(dirty630 PRIVATE ${CMAKE_BINARY_DIR}/generated)
 
     target_compile_definitions(dirty630 PUBLIC
         JUCE_WEB_BROWSER=0

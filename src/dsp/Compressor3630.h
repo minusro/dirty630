@@ -6,15 +6,16 @@
 //      -> VCA (2150: gain, distortion, CV feedthrough) + noise
 //      -> coupling cap -> output level -> output buffer (clips) -> out
 //
-// Sidechain per channel:
+// Sidechain (shared):
 //
-//   buffer out (or external SC) -> [peak hold] -> RMS log-domain sensor
+//   mono sum of the two buffer outputs (or of the external SC)
+//      -> [peak hold] -> RMS log-domain sensor (one per channel, same input)
 //      -> gain computer (threshold / ratio / knee)
 //      -> diode-steered attack/release RC  -> CV
 //   RMS level -> gate -> CV
 //
-// STEREO link ties the two RMS sensors together (channel A's controls apply
-// to both), as the hardware does.
+// One set of panel controls drives both VCAs; the channels only drift apart
+// by component spread (Mismatch).
 #pragma once
 
 #include "Circuit.h"
@@ -39,7 +40,6 @@ struct ChannelParams
 
 struct GlobalParams
 {
-    bool   stereoLink    = false;
     double inputTrimDb   = 0.0;
     double calibDbuAt0dBFS = 18.0;  // what 0 dBFS (peak) means in dBu at the input jack
     double thump         = 0.5;     // 0..1, control-voltage feedthrough amount
@@ -90,11 +90,8 @@ public:
         levelDbu = detector.process (scVolts, params.peakMode);
     }
 
-    // Allow the link to overwrite the level with the shared one.
-    inline void setLevelDbu (double dbu) { levelDbu = dbu; }
-
     // Step 2: compute the control voltage from a given gain computer / timing
-    // (the link makes channel B borrow channel A's).
+    // (channel B borrows channel A's computer, since one panel drives both).
     inline double controlDb (const GainComputer& gc)
     {
         const double target = gc.reductionDb (levelDbu);
@@ -171,31 +168,19 @@ public:
         const double vL = ch[0].stage.process (left  * inputScale);
         const double vR = ch[1].stage.process (right * inputScale);
 
-        // --- detectors ------------------------------------------------------
-        const double dL = globals.externalSidechain ? scL * inputScale : vL;
-        const double dR = globals.externalSidechain ? scR * inputScale : vR;
-        ch[0].detect (dL);
-        ch[1].detect (dR);
+        // --- detector --------------------------------------------------------
+        // Both sensors listen to the mono sum of the programme (or of the
+        // external sidechain), so the channels always track together; the
+        // Mismatch spread still lets B's sensor and VCA drift a little.
+        const double det = globals.externalSidechain ? 0.5 * (scL + scR) * inputScale
+                                                     : 0.5 * (vL + vR);
+        ch[0].detect (det);
+        ch[1].detect (det);
 
-        double gL, gR;
-        if (globals.stereoLink)
-        {
-            // Tied detector outputs: the sensors average in the mean-square
-            // domain.  Channel A's panel controls drive both VCAs.
-            const double ms = 0.5 * (ch[0].detector.y + ch[1].detector.y);
-            const double dbu = 10.0 * std::log10 (std::max (ms, 1e-18) / kDbuRef2);
-            ch[0].setLevelDbu (dbu);
-            ch[1].setLevelDbu (dbu);
-            gL = ch[0].controlDb (ch[0].computer);
-            // Channel B's own timing network tracks the same target so the two
-            // VCAs stay within component tolerance of each other.
-            gR = ch[1].controlDb (ch[0].computer);
-        }
-        else
-        {
-            gL = ch[0].controlDb (ch[0].computer);
-            gR = ch[1].controlDb (ch[1].computer);
-        }
+        // One set of panel controls (channel A's) drives both VCAs; each
+        // channel keeps its own timing network, within component tolerance.
+        const double gL = ch[0].controlDb (ch[0].computer);
+        const double gR = ch[1].controlDb (ch[0].computer);
 
         // --- VCAs and output stages ----------------------------------------
         const double nL = noiseAmp * noiseL.next();

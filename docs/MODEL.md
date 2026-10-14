@@ -80,10 +80,13 @@ Diode-steered RC: `cv += diff·attackCoef` when rising past the dead band,
 - Measure: pink noise just above gate threshold; count chatter rate vs level
   offset to fit hysteresis.
 
-### Stereo link
-Tied detector outputs → average of mean-squares. **S/G** — dbx detectors
-summed into a shared cap behave this way; confirm the 3630 ties the cap node
-rather than the log output (the latter would give a max-like law).
+### Shared detection
+Since 0.2 the plugin is always linked: both RMS sensors are fed the mono sum
+of the two input-buffer outputs (or of the external sidechain), and one set of
+controls drives both VCAs. This is a design choice, not a hardware claim — the
+hardware's LINK ties the detector outputs (average of mean-squares, **S/G**);
+the mono-sum detector is simpler and close for coherent programme. Revisit if
+calibration against a real linked unit shows a visible difference.
 
 ### Mismatch (channel B spread at Mismatch = 1)
 +60 % feedthrough, +80 % symmetry error, +10 % RMS τ. **G**, chosen to be
