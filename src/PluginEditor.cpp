@@ -150,6 +150,7 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
     makeKnob (thump,     ids::thump,     "THUMP");
     makeKnob (noise,     ids::noise,     "NOISE");
     makeKnob (mismatch,  ids::mismatch,  "MISMATCH");
+    makeKnob (mix,       ids::mix,       "MIX");
     makeToggle (extSc, ids::extSc, "EXT SC");
 
     oversamp.addItemList ({ "1x", "2x", "4x" }, 1);
@@ -197,10 +198,12 @@ void Dirty630Editor::paint (Graphics& g)
 {
     g.fillAll (kPanel);
 
-    // Brushed header stripe and a rack-rail edge above the global row.
+    // Brushed header stripe and a rack-rail edge above the global row.  The
+    // rail stops short of the right edge, where the big MIX knob spans both
+    // rows.
     g.setColour (kPanelHi);
     g.fillRect (0, 0, getWidth(), 34);
-    g.fillRect (0, 196, getWidth(), 2);
+    g.fillRect (0, 196, getWidth() - 160, 2);
 
     g.setColour (kLegend);
     g.setFont (Font (FontOptions (20.0f, Font::bold)));
@@ -247,7 +250,9 @@ void Dirty630Editor::resized()
     extSc.button.setBounds (x, top + 20, 70, 24); x += 90;
     for (auto* k : { &inputTrim, &calib })
     {
-        k->label.setBounds (x, top, knobW, 14);
+        // 4 px higher than the knob row suggests: puts the label base at the
+        // same distance from the 12-o'clock tick as on the big knobs.
+        k->label.setBounds (x, top - 4, knobW, 14);
         k->slider.setBounds (x, top + 10, knobW, knobH);
         x += knobW;
     }
@@ -255,13 +260,17 @@ void Dirty630Editor::resized()
     dirtLabel.setBounds (x, top + 24, 44, 18); x += 48;
     for (auto* k : { &thump, &noise, &mismatch })
     {
-        k->label.setBounds (x, top, knobW, 14);
+        k->label.setBounds (x, top - 4, knobW, 14);
         k->slider.setBounds (x, top + 10, knobW, knobH);
         x += knobW;
     }
     x += 20;
     oversampLabel.setBounds (x, top, 90, 14);
     oversamp.setBounds (x + 10, top + 22, 70, 24);
+
+    // Big dry/wet knob in the bottom-right corner, spanning both rows.
+    mix.label.setBounds (getWidth() - 140, 162, 120, 14);
+    mix.slider.setBounds (getWidth() - 140, 176, 120, 112);
 }
 
 void Dirty630Editor::timerCallback()

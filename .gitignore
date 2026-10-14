@@ -74,3 +74,4 @@ xcuserdata/
 cmake-build-*/
 .vscode/
 .idea/
+dist/

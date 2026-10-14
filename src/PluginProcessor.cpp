@@ -56,6 +56,8 @@ AudioProcessorValueTreeState::ParameterLayout Dirty630Processor::createLayout()
     layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::extSc, 1 }, "Ext Sidechain", false));
     layout.add (std::make_unique<AudioParameterChoice> (ParameterID { ids::oversamp, 1 }, "Oversampling",
                     StringArray { "1x", "2x", "4x" }, 1));
+    layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::mix, 1 }, "Mix",
+                    NormalisableRange<float> (0.0f, 100.0f, 1.0f), 100.0f, AudioParameterFloatAttributes().withLabel ("%")));
 
     return layout;
 }
@@ -83,6 +85,7 @@ void Dirty630Processor::rebuildOversampling (int factorIndex)
     model.prepare (hostSampleRate * factor);
     currentOversampIndex = factorIndex;
     setLatencySamples ((int) std::ceil (oversampling->getLatencyInSamples()));
+    dryWet.setWetLatency (oversampling->getLatencyInSamples());
 }
 
 void Dirty630Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
@@ -90,6 +93,7 @@ void Dirty630Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
     hostSampleRate = sampleRate;
     maxBlock = samplesPerBlock;
     currentOversampIndex = -1;
+    dryWet.prepare ({ sampleRate, (uint32) samplesPerBlock, 2 });
     rebuildOversampling ((int) apvts.getRawParameterValue (ids::oversamp)->load());
     stereoBuffer.setSize (2, samplesPerBlock);
     scBuffer.setSize (2, samplesPerBlock);
@@ -123,6 +127,8 @@ void Dirty630Processor::updateParameters()
     g.mismatch          = get (ids::mismatch);
     g.externalSidechain = get (ids::extSc) > 0.5f && getBus (true, 1) != nullptr && getBus (true, 1)->isEnabled();
     model.setGlobalParams (g);
+
+    dryWet.setWetMixProportion (get (ids::mix) * 0.01f);
 }
 
 void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
@@ -144,6 +150,7 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
     if (numSamples > maxBlock)
     {
         maxBlock = numSamples;
+        dryWet.prepare ({ hostSampleRate, (uint32) maxBlock, 2 });
         rebuildOversampling (currentOversampIndex);
         stereoBuffer.setSize (2, maxBlock, false, false, true);
         scBuffer.setSize (2, maxBlock, false, false, true);
@@ -167,6 +174,7 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
         sc.clear();
 
     dsp::AudioBlock<float> block (stereo);
+    dryWet.pushDrySamples (block);
     auto up = oversampling->processSamplesUp (block);
 
     const int factor = 1 << currentOversampIndex;
@@ -187,6 +195,7 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
     }
 
     oversampling->processSamplesDown (block);
+    dryWet.mixWetSamples (block);
 
     auto mainOut = getBusBuffer (buffer, false, 0);
     for (int c = 0; c < mainOut.getNumChannels(); ++c)

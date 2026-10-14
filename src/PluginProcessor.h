@@ -26,6 +26,7 @@ namespace ids
     static constexpr const char* mismatch  = "mismatch";
     static constexpr const char* extSc     = "extSc";
     static constexpr const char* oversamp  = "oversamp";
+    static constexpr const char* mix       = "mix";
 
     inline juce::String ch (const char* base, int index) { return juce::String (base) + (index == 0 ? "A" : "B"); }
 }
@@ -71,6 +72,10 @@ private:
     void rebuildOversampling (int factorIndex);
 
     dirty630::Compressor3630 model;
+    // Dry/wet is a plugin nicety, not part of the circuit model; the mixer
+    // delays the dry path by the oversampling latency so the blend stays
+    // phase-aligned (64 samples of headroom covers the 4x IIR filters).
+    juce::dsp::DryWetMixer<float> dryWet { 64 };
     std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
     int currentOversampIndex = -1;
     double hostSampleRate = 48000.0;
