@@ -31,6 +31,12 @@ file that matches your task:
   (which component, which datasheet figure) not just the code change.
 - Licence is GPLv3 (matches JUCE's GPL option). Don't add non-GPL-compatible
   dependencies.
+- Versioning: the version comes from `project(... VERSION)` in `CMakeLists.txt`
+  and is shown in the editor header next to the build time (stamped by
+  `cmake/BuildInfo.cmake` on every build; a .0 patch digit is hidden). Started
+  at 0.1. Small fixes and tweaks bump the patch (m.n → m.n.1 → m.n.2); a batch
+  of real changes bumps the minor (m.n → m.(n+1).0); a major change jumps to
+  the next whole `(n+1).0.0`.
 
 ## Quick commands
 

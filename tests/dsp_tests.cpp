@@ -246,9 +246,9 @@ int main()
 
     // ------------------------------------------------------------------ stereo link
     {
-        std::printf ("\n[link] loud left, quiet right\n");
+        std::printf ("\n[link] loud left, quiet right (mono-sum detector)\n");
         ChannelParams p; p.thresholdDbu = -20; p.ratio = 4; p.attackSec = 0.001; p.releaseSec = 0.05;
-        GlobalParams g; g.stereoLink = true;
+        GlobalParams g;
         auto c = makeComp (p, g);
         const double aL = dbToLin (0.0 - 18.0), aR = dbToLin (-40.0 - 18.0);
         for (int i = 0; i < (int) kFs; ++i)

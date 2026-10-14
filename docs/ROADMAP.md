@@ -2,11 +2,12 @@
 
 Ordered by value. Tick items off here and note the commit.
 
-## 1. Make it real (next session)
-- [ ] Build on macOS, fix any AppleClang warnings-as-errors
-- [ ] `auval` and pluginval clean
+## 1. Make it real
+- [x] Build on macOS, fix any AppleClang warnings-as-errors (0.2, 2026-10-14)
+- [x] `auval` and pluginval (strictness 5) clean (0.2, 2026-10-14)
 - [ ] Listening pass in the Standalone and in a DAW; note anything that sounds wrong in `HANDOFF.md`
-- [ ] Screenshot the editor; fix layout overlaps in `resized()`
+- [x] Screenshot the editor; fix layout overlaps (0.2 — bottom row was clipped; editor now single-strip 980×300)
+- [ ] Windows VST3 via GitHub Actions (no local Windows toolchain)
 
 ## 2. Correctness polish
 - [ ] `SmoothedValue` on Input trim and Output (zipper noise under automation)
@@ -23,7 +24,6 @@ Priority order: RMS τ → static curves → THD vs GR → feedthrough → gate.
 ## 4. Features worth having
 - [ ] GR meter driven by a smoothed peak-hold value rather than block-end sample
 - [ ] Input/output level LEDs (the hardware has a −∞/+ clip style pair)
-- [ ] Per-channel "B follows A" switch separate from Link (3630 Link forces A's controls; some people want mirrored knobs without tied detectors)
 - [ ] Preset set: the classic "drum bus smash", "NIN bass", "gate for snare" settings
 - [ ] Resizable editor (scale factor from APVTS state)
 - [ ] "Modded" toggle: THAT 2180 VCA + good op-amps → symmetry error, feedthrough and noise all near zero, rail at 14.5 V. Trivial to add, worth a lot to users.
@@ -32,7 +32,6 @@ Priority order: RMS τ → static curves → THD vs GR → feedthrough → gate.
 - [ ] CLAP format (clap-juce-extensions)
 - [ ] Headless CLI that runs the model over a WAV for offline A/B against hardware captures
 - [ ] Null-test harness: given input + hardware output WAVs, report residual in dB per band
-- [ ] Windows build (nothing platform-specific in the code; just untested)
 
 ## Explicitly out of scope
 - Neural / black-box modelling. See `HANDOFF.md` decisions.

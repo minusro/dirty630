@@ -6,7 +6,8 @@
 
 namespace ids
 {
-    // Per-channel parameter IDs are "<name>A" / "<name>B".
+    // One set of controls drives both channels.  Its IDs keep the "A" suffix
+    // from the old two-strip layout (via ch (name, 0)) for state compatibility.
     static constexpr const char* threshold = "threshold";
     static constexpr const char* ratio     = "ratio";
     static constexpr const char* attack    = "attack";
@@ -18,7 +19,6 @@ namespace ids
     static constexpr const char* gateRate  = "gateRate";
     static constexpr const char* bypass    = "bypass";
 
-    static constexpr const char* link      = "link";
     static constexpr const char* inputTrim = "inputTrim";
     static constexpr const char* calib     = "calib";
     static constexpr const char* thump     = "thump";
