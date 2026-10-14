@@ -5,7 +5,7 @@ Ordered by value. Tick items off here and note the commit.
 ## 1. Make it real
 - [x] Build on macOS, fix any AppleClang warnings-as-errors (0.2, 2026-10-14)
 - [x] `auval` and pluginval (strictness 5) clean (0.2, 2026-10-14)
-- [ ] Listening pass in the Standalone and in a DAW; note anything that sounds wrong in `HANDOFF.md`
+- [x] Listening pass (0.4, 2026-10-14 — "sounds about right"; nothing logged)
 - [x] Screenshot the editor; fix layout overlaps (0.2 — bottom row was clipped; editor now single-strip 980×300)
 - [x] Windows VST3 + installers via GitHub Actions (CI green since 0.3; artifacts not yet tried on a Windows machine)
 
