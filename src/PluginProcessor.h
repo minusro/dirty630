@@ -27,6 +27,7 @@ namespace ids
     static constexpr const char* extSc     = "extSc";
     static constexpr const char* oversamp  = "oversamp";
     static constexpr const char* mix       = "mix";
+    static constexpr const char* modded    = "modded";
 
     inline juce::String ch (const char* base, int index) { return juce::String (base) + (index == 0 ? "A" : "B"); }
 }
@@ -51,10 +52,10 @@ public:
     bool isMidiEffect() const override { return false; }
     double getTailLengthSeconds() const override { return 0.0; }
 
-    int getNumPrograms() override { return 1; }
-    int getCurrentProgram() override { return 0; }
-    void setCurrentProgram (int) override {}
-    const juce::String getProgramName (int) override { return {}; }
+    int getNumPrograms() override;
+    int getCurrentProgram() override { return currentProgram; }
+    void setCurrentProgram (int) override;
+    const juce::String getProgramName (int) override;
     void changeProgramName (int, const juce::String&) override {}
 
     void getStateInformation (juce::MemoryBlock& destData) override;
@@ -69,15 +70,20 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
     void updateParameters();
-    void rebuildOversampling (int factorIndex);
+    void buildOversamplers();          // allocates: prepareToPlay / resize only
+    void selectOversampling (int factorIndex);   // allocation-free swap
 
     dirty630::Compressor3630 model;
     // Dry/wet is a plugin nicety, not part of the circuit model; the mixer
     // delays the dry path by the oversampling latency so the blend stays
     // phase-aligned (64 samples of headroom covers the 4x IIR filters).
     juce::dsp::DryWetMixer<float> dryWet { 64 };
-    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
+    // All three factors are built up front so flipping the combo box swaps a
+    // pointer instead of allocating on the audio thread.
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversamplers[3];
+    juce::dsp::Oversampling<float>* oversampling = nullptr;
     int currentOversampIndex = -1;
+    int currentProgram = 0;
     double hostSampleRate = 48000.0;
     int maxBlock = 512;
 

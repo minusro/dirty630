@@ -55,9 +55,10 @@ AudioProcessorValueTreeState::ParameterLayout Dirty630Processor::createLayout()
                     NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.5f));
     layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::extSc, 1 }, "Ext Sidechain", false));
     layout.add (std::make_unique<AudioParameterChoice> (ParameterID { ids::oversamp, 1 }, "Oversampling",
-                    StringArray { "1x", "2x", "4x" }, 1));
+                    StringArray { "1x", "2x", "4x" }, 2));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::mix, 1 }, "Mix",
                     NormalisableRange<float> (0.0f, 100.0f, 1.0f), 100.0f, AudioParameterFloatAttributes().withLabel ("%")));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::modded, 1 }, "Modded", false));
 
     return layout;
 }
@@ -75,14 +76,21 @@ bool Dirty630Processor::isBusesLayoutSupported (const BusesLayout& layouts) cons
     return sc.isDisabled() || sc == AudioChannelSet::stereo() || sc == AudioChannelSet::mono();
 }
 
-void Dirty630Processor::rebuildOversampling (int factorIndex)
+void Dirty630Processor::buildOversamplers()
 {
-    const int factor = 1 << factorIndex;
-    oversampling = std::make_unique<dsp::Oversampling<float>> (2, factorIndex,
-                        dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false);
-    oversampling->initProcessing ((size_t) maxBlock);
+    for (int i = 0; i < 3; ++i)
+    {
+        oversamplers[i] = std::make_unique<dsp::Oversampling<float>> (2, i,
+                              dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false);
+        oversamplers[i]->initProcessing ((size_t) maxBlock);
+    }
+}
+
+void Dirty630Processor::selectOversampling (int factorIndex)
+{
+    oversampling = oversamplers[factorIndex].get();
     oversampling->reset();
-    model.prepare (hostSampleRate * factor);
+    model.prepare (hostSampleRate * (1 << factorIndex));
     currentOversampIndex = factorIndex;
     setLatencySamples ((int) std::ceil (oversampling->getLatencyInSamples()));
     dryWet.setWetLatency (oversampling->getLatencyInSamples());
@@ -92,9 +100,9 @@ void Dirty630Processor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     hostSampleRate = sampleRate;
     maxBlock = samplesPerBlock;
-    currentOversampIndex = -1;
     dryWet.prepare ({ sampleRate, (uint32) samplesPerBlock, 2 });
-    rebuildOversampling ((int) apvts.getRawParameterValue (ids::oversamp)->load());
+    buildOversamplers();
+    selectOversampling ((int) apvts.getRawParameterValue (ids::oversamp)->load());
     stereoBuffer.setSize (2, samplesPerBlock);
     scBuffer.setSize (2, samplesPerBlock);
     updateParameters();
@@ -126,6 +134,7 @@ void Dirty630Processor::updateParameters()
     g.noise             = get (ids::noise);
     g.mismatch          = get (ids::mismatch);
     g.externalSidechain = get (ids::extSc) > 0.5f && getBus (true, 1) != nullptr && getBus (true, 1)->isEnabled();
+    g.modded            = get (ids::modded) > 0.5f;
     model.setGlobalParams (g);
 
     dryWet.setWetMixProportion (get (ids::mix) * 0.01f);
@@ -137,7 +146,7 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
 
     const int osIndex = (int) apvts.getRawParameterValue (ids::oversamp)->load();
     if (osIndex != currentOversampIndex)
-        rebuildOversampling (osIndex);
+        selectOversampling (osIndex);
 
     updateParameters();
 
@@ -151,7 +160,8 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
     {
         maxBlock = numSamples;
         dryWet.prepare ({ hostSampleRate, (uint32) maxBlock, 2 });
-        rebuildOversampling (currentOversampIndex);
+        buildOversamplers();
+        selectOversampling (currentOversampIndex);
         stereoBuffer.setSize (2, maxBlock, false, false, true);
         scBuffer.setSize (2, maxBlock, false, false, true);
     }
@@ -184,6 +194,7 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
     const float* scr = sc.getReadPointer (1);
     const int n = (int) up.getNumSamples();
 
+    double grMax[2] = { 0.0, 0.0 };
     for (int i = 0; i < n; ++i)
     {
         double dl = l[i], dr = r[i];
@@ -192,6 +203,8 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
         const int j = jmin (i / factor, numSamples - 1);
         model.processSample (dl, dr, scl[j], scr[j]);
         l[i] = (float) dl; r[i] = (float) dr;
+        grMax[0] = jmax (grMax[0], model.gainReductionDb (0));
+        grMax[1] = jmax (grMax[1], model.gainReductionDb (1));
     }
 
     oversampling->processSamplesDown (block);
@@ -203,9 +216,60 @@ void Dirty630Processor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
 
     for (int c = 0; c < 2; ++c)
     {
-        grMeter[c].store ((float) model.gainReductionDb (c));
+        // Block max, not block-end sample, so short transient bites register.
+        grMeter[c].store ((float) grMax[c]);
         levelMeter[c].store ((float) model.levelDbu (c));
     }
+}
+
+//==============================================================================
+// Presets.  Each one sets only the strip controls plus mix, leaving the
+// calibration, DIRT and oversampling settings alone.
+namespace
+{
+    struct PresetValue { const char* id; float value; };
+    struct Preset { const char* name; std::initializer_list<PresetValue> values; };
+
+    const Preset kPresets[] =
+    {
+        { "Default",
+          { { "thresholdA", 0.0f },  { "ratioA", 4.0f },   { "attackA", 10.0f },  { "releaseA", 300.0f },
+            { "outputA", 0.0f },     { "peakA", 0.0f },    { "softA", 0.0f },     { "gateThrA", -70.0f },
+            { "gateRateA", 100.0f }, { "bypassA", 0.0f },  { "mix", 100.0f } } },
+        // The classic drum-bus abuse: deep threshold, hard ratio, fast enough
+        // to clamp the transient, release pumping with the groove.
+        { "Drum Bus Smash",
+          { { "thresholdA", -30.0f }, { "ratioA", 10.0f },  { "attackA", 0.5f },   { "releaseA", 100.0f },
+            { "outputA", 6.0f },      { "peakA", 1.0f },    { "softA", 0.0f },     { "gateThrA", -70.0f },
+            { "gateRateA", 100.0f },  { "bypassA", 0.0f },  { "mix", 80.0f } } },
+        // Infinite-ratio peak-mode bass squash.
+        { "NIN Bass",
+          { { "thresholdA", -25.0f }, { "ratioA", 100.0f }, { "attackA", 0.1f },   { "releaseA", 50.0f },
+            { "outputA", 8.0f },      { "peakA", 1.0f },    { "softA", 0.0f },     { "gateThrA", -70.0f },
+            { "gateRateA", 100.0f },  { "bypassA", 0.0f },  { "mix", 100.0f } } },
+        // Compressor idling at 1:1, gate doing the work.
+        { "Snare Gate",
+          { { "thresholdA", 20.0f },  { "ratioA", 1.0f },   { "attackA", 10.0f },  { "releaseA", 300.0f },
+            { "outputA", 0.0f },      { "peakA", 0.0f },    { "softA", 0.0f },     { "gateThrA", -30.0f },
+            { "gateRateA", 60.0f },   { "bypassA", 0.0f },  { "mix", 100.0f } } },
+    };
+}
+
+int Dirty630Processor::getNumPrograms() { return (int) std::size (kPresets); }
+
+const String Dirty630Processor::getProgramName (int index)
+{
+    return isPositiveAndBelow (index, (int) std::size (kPresets)) ? kPresets[index].name : String();
+}
+
+void Dirty630Processor::setCurrentProgram (int index)
+{
+    if (! isPositiveAndBelow (index, (int) std::size (kPresets)))
+        return;
+    currentProgram = index;
+    for (const auto& v : kPresets[index].values)
+        if (auto* p = apvts.getParameter (v.id))
+            p->setValueNotifyingHost (p->convertTo0to1 (v.value));
 }
 
 //==============================================================================

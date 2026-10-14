@@ -20,7 +20,13 @@ public:
 class GrMeter : public juce::Component
 {
 public:
-    void setValue (float grDb) { value = grDb; repaint(); }
+    // Instant attack, ~40 dB/s fall at the 30 Hz editor timer, so short
+    // transient bites stay visible instead of flickering.
+    void setValue (float grDb)
+    {
+        value = juce::jmax (grDb, value - 1.4f);
+        repaint();
+    }
     void paint (juce::Graphics&) override;
 private:
     float value = 0.0f;
@@ -65,7 +71,7 @@ private:
     } strip;
 
     Knob inputTrim, calib, thump, noise, mismatch, mix;
-    Toggle extSc;
+    Toggle extSc, modded;
     juce::ComboBox oversamp;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oversampAttachment;
     juce::Label oversampLabel, dirtLabel;

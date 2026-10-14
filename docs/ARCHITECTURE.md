@@ -44,14 +44,16 @@ channel keeps its own `RmsDetector`, `TimingNetwork` and `Gate` so the
   `exp`/`log` calls) and avoids a listener/lock. If parameter count grows a
   lot, switch to change flags.
 - Oversampling is `juce::dsp::Oversampling` (polyphase IIR half-band,
-  max-quality off). Factor changes rebuild it on the audio thread —
-  that allocates. Acceptable because it only happens when the user flips the
-  combo box; if a host automates it, move the rebuild to a message-thread
-  callback with a pre-built set.
+  max-quality off). All three factors are built in `prepareToPlay`; a factor
+  change just swaps a pointer, resets, and re-prepares the model —
+  allocation-free.
+- Input trim and Output are smoothed inside the model (`Smoothed`, 10 ms
+  one-pole in `Circuit.h`), so block-rate automation doesn't zipper.
 - `stereoBuffer` / `scBuffer` are sized in `prepareToPlay`. The resize branch
   in `processBlock` only triggers if the host lies about block size.
-- Meters: two `std::atomic<float>` per channel written at the end of each
-  block, read by a 30 Hz editor timer.
+- Meters: two `std::atomic<float>` per channel, written with the block's
+  **max** GR, read by a 30 Hz editor timer; `GrMeter` adds instant-attack /
+  ~40 dB/s-release ballistics so transient bites register.
 
 ## Parameters
 
@@ -77,8 +79,13 @@ state compatibility; the `B` set and `link` were removed in 0.2. All ranges:
 | noise | 0…1 | 0.5 | −90 dBu white at 1.0 |
 | mismatch | 0…1 | 0.5 | B-channel spread of symmetry/feedthrough/RMS τ |
 | extSc | bool | off | needs sidechain bus enabled by host |
-| oversamp | 1×/2×/4× | 2× | |
+| oversamp | 1×/2×/4× | 4× | |
 | mix | 0…100 % | 100 | dry/wet; dry path latency-compensated by `juce::dsp::DryWetMixer` |
+| modded | bool | off | THAT 2180 + op-amp swap: core errors ×0.03, rails 14.5 V |
+
+Programs: four host-visible presets (Default, Drum Bus Smash, NIN Bass,
+Snare Gate) that set only the strip controls plus mix, leaving calibration,
+DIRT and oversampling untouched (`kPresets` in `PluginProcessor.cpp`).
 
 ## Buses
 

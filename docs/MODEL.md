@@ -88,6 +88,12 @@ hardware's LINK ties the detector outputs (average of mean-squares, **S/G**);
 the mono-sum detector is simpler and close for coherent programme. Revisit if
 calibration against a real linked unit shows a visible difference.
 
+### Modded
+The classic upgrade (THAT 2180 in the 2150 socket, better op-amps): symmetry
+error, odd-harmonic coefficients, feedthrough and noise all ×0.03 **G**
+(2180 THD is spec'd ~40x below an untrimmed 2150), output stage rail 14.5 V,
+soft-start 13.2 V **G**. The DIRT knobs keep working on the smaller core.
+
 ### Mismatch (channel B spread at Mismatch = 1)
 +60 % feedthrough, +80 % symmetry error, +10 % RMS τ. **G**, chosen to be
 audible on a stereo bus without being broken. Unit-to-unit spread of real
