@@ -11,6 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Version
+        shell: pwsh
+        run: |
+          $ver = (Select-String -Path CMakeLists.txt -Pattern 'project\(dirty630 VERSION ([0-9.]+)').Matches[0].Groups[1].Value
+          "VER=$ver" >> $env:GITHUB_ENV
+
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -22,21 +28,19 @@ jobs:
 
       - name: Installer (Inno Setup)
         shell: pwsh
-        run: |
-          $ver = (Select-String -Path CMakeLists.txt -Pattern 'project\(dirty630 VERSION ([0-9.]+)').Matches[0].Groups[1].Value
-          iscc /DVersion=$ver "/DVst3Dir=$PWD\build\dirty630_artefacts\Release\VST3" /O"$PWD\dist" installer\windows\dirty630.iss
+        run: iscc /DVersion=$env:VER "/DVst3Dir=$PWD\build\dirty630_artefacts\Release\VST3" /O"$PWD\dist" installer\windows\dirty630.iss
 
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-windows-vst3
+          name: dirty630-${{ env.VER }}-windows-vst3
           path: build/dirty630_artefacts/Release/VST3/dirty630.vst3
           if-no-files-found: error
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-windows-installer
+          name: dirty630-${{ env.VER }}-windows-installer
           path: dist/*.exe
           if-no-files-found: error
 
@@ -44,6 +48,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Version
+        run: echo "VER=$(sed -n 's/^project(dirty630 VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)" >> $GITHUB_ENV
 
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -56,20 +63,19 @@ jobs:
 
       - name: Installer (pkgbuild)
         run: |
-          ver=$(sed -n 's/^project(dirty630 VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
           mkdir -p dist
-          sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 "$ver" "dist/dirty630-$ver-macos.pkg"
+          sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 "$VER" "dist/dirty630-$VER-macos.pkg"
 
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-macos-vst3
+          name: dirty630-${{ env.VER }}-macos-vst3
           path: build/dirty630_artefacts/Release/VST3/dirty630.vst3
           if-no-files-found: error
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-macos-installer
+          name: dirty630-${{ env.VER }}-macos-installer
           path: dist/*.pkg
           if-no-files-found: error
