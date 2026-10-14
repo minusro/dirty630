@@ -1,0 +1,82 @@
+#pragma once
+
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_dsp/juce_dsp.h>
+#include "dsp/Compressor3630.h"
+
+namespace ids
+{
+    // Per-channel parameter IDs are "<name>A" / "<name>B".
+    static constexpr const char* threshold = "threshold";
+    static constexpr const char* ratio     = "ratio";
+    static constexpr const char* attack    = "attack";
+    static constexpr const char* release   = "release";
+    static constexpr const char* output    = "output";
+    static constexpr const char* peak      = "peak";
+    static constexpr const char* soft      = "soft";
+    static constexpr const char* gateThr   = "gateThr";
+    static constexpr const char* gateRate  = "gateRate";
+    static constexpr const char* bypass    = "bypass";
+
+    static constexpr const char* link      = "link";
+    static constexpr const char* inputTrim = "inputTrim";
+    static constexpr const char* calib     = "calib";
+    static constexpr const char* thump     = "thump";
+    static constexpr const char* noise     = "noise";
+    static constexpr const char* mismatch  = "mismatch";
+    static constexpr const char* extSc     = "extSc";
+    static constexpr const char* oversamp  = "oversamp";
+
+    inline juce::String ch (const char* base, int index) { return juce::String (base) + (index == 0 ? "A" : "B"); }
+}
+
+class Dirty630Processor : public juce::AudioProcessor
+{
+public:
+    Dirty630Processor();
+    ~Dirty630Processor() override = default;
+
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override {}
+    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    juce::AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override { return true; }
+
+    const juce::String getName() const override { return JucePlugin_Name; }
+    bool acceptsMidi() const override  { return false; }
+    bool producesMidi() const override { return false; }
+    bool isMidiEffect() const override { return false; }
+    double getTailLengthSeconds() const override { return 0.0; }
+
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 0; }
+    void setCurrentProgram (int) override {}
+    const juce::String getProgramName (int) override { return {}; }
+    void changeProgramName (int, const juce::String&) override {}
+
+    void getStateInformation (juce::MemoryBlock& destData) override;
+    void setStateInformation (const void* data, int sizeInBytes) override;
+
+    juce::AudioProcessorValueTreeState apvts;
+
+    // Meter values for the editor (dB of gain reduction, positive).
+    std::atomic<float> grMeter[2] { 0.0f, 0.0f };
+    std::atomic<float> levelMeter[2] { -90.0f, -90.0f };
+
+private:
+    static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
+    void updateParameters();
+    void rebuildOversampling (int factorIndex);
+
+    dirty630::Compressor3630 model;
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
+    int currentOversampIndex = -1;
+    double hostSampleRate = 48000.0;
+    int maxBlock = 512;
+
+    juce::AudioBuffer<float> stereoBuffer, scBuffer;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Dirty630Processor)
+};
