@@ -244,6 +244,31 @@ int main()
         CHECK (peakDc > 1e-4, "feedthrough produces a thump");
     }
 
+    // ------------------------------------------------------------------ modded
+    {
+        std::printf ("\n[modded] THAT 2180 + op-amp swap vs stock\n");
+        // THD at unity (no GR), thump off: pure VCA nonlinearity.  Under
+        // compression the dominant residual is gain-modulation distortion
+        // from detector ripple, which the mod rightly does not remove.
+        ChannelParams unity; unity.thresholdDbu = 20; unity.ratio = 1;
+        GlobalParams g; g.thump = 0.0;
+        GlobalParams gm = g; gm.modded = true;
+        auto cs = makeComp (unity, g);
+        auto cm = makeComp (unity, gm);
+        const auto rs = runSine (cs, 4.0, 2.0, 1000.0, true);
+        const auto rm = runSine (cm, 4.0, 2.0, 1000.0, true);
+        std::printf ("   unity THD stock %.4f %%, modded %.4f %%\n", rs.thd * 100, rm.thd * 100);
+        CHECK (rm.thd < 0.15 * rs.thd, "modded VCA is an order of magnitude cleaner");
+
+        ChannelParams p; p.thresholdDbu = -20; p.ratio = 4;
+        auto cs2 = makeComp (p, g);
+        auto cm2 = makeComp (p, gm);
+        const double grs = runSine (cs2, 4.0, 2.0).grDb;
+        const double grm = runSine (cm2, 4.0, 2.0).grDb;
+        std::printf ("   GR stock %.2f dB, modded %.2f dB\n", grs, grm);
+        CHECK (std::abs (grs - grm) < 0.3, "the gain law itself is unchanged");
+    }
+
     // ------------------------------------------------------------------ stereo link
     {
         std::printf ("\n[link] loud left, quiet right (mono-sum detector)\n");

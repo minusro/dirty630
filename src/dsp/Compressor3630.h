@@ -46,6 +46,7 @@ struct GlobalParams
     double noise         = 0.5;     // 0..1, VCA/op-amp noise floor
     double mismatch      = 0.5;     // 0..1, channel-to-channel component spread
     bool   externalSidechain = false;
+    bool   modded        = false;   // THAT 2180 + op-amp swap: near-clean core
 };
 
 //==============================================================================
@@ -59,6 +60,7 @@ public:
         timing.prepare (fs);
         gate.prepare (fs);
         coupling.prepare (0.16, fs);   // 10 uF into 100 k
+        outGain.prepare (0.010, fs);
         reset();
     }
 
@@ -68,6 +70,7 @@ public:
         timing.reset();
         gate.reset();
         coupling.reset();
+        outGain.snap();
         lastReductionDb = 0.0;
     }
 
@@ -80,7 +83,7 @@ public:
         timing.setTimes (p.attackSec, p.releaseSec);
         gate.thresholdDbu = p.gateThreshDbu;
         gate.setRate (p.gateRateSec);
-        outputGain = dbToLin (p.outputDb);
+        outGain.setTarget (dbToLin (p.outputDb));
     }
 
     // Step 1: run the detector on the sidechain source.  Separated from the
@@ -110,7 +113,7 @@ public:
 
         double y = vca.process (v, gainDb) + noiseV;
         y = coupling.process (y);
-        y *= outputGain;
+        y *= outGain.next();
         return stage.process (y);
     }
 
@@ -129,7 +132,7 @@ public:
 private:
     double sampleRate = 48000.0;
     double levelDbu   = -90.0;
-    double outputGain = 1.0;
+    Smoothed outGain;
     double lastReductionDb = 0.0;
 };
 
@@ -147,7 +150,9 @@ public:
     {
         sampleRate = fs;
         for (auto& c : ch) c.prepare (fs, kRmsTauSec, kPeakHoldSec);
+        inScale.prepare (0.010, fs);
         applyGlobals();
+        inScale.snap();
     }
 
     void reset()
@@ -164,15 +169,17 @@ public:
     // also full scale, used only when globals.externalSidechain is set.
     inline void processSample (double& left, double& right, double scL = 0.0, double scR = 0.0)
     {
+        const double scale = inScale.next();
+
         // --- input buffers ---------------------------------------------------
-        const double vL = ch[0].stage.process (left  * inputScale);
-        const double vR = ch[1].stage.process (right * inputScale);
+        const double vL = ch[0].stage.process (left  * scale);
+        const double vR = ch[1].stage.process (right * scale);
 
         // --- detector --------------------------------------------------------
         // Both sensors listen to the mono sum of the programme (or of the
         // external sidechain), so the channels always track together; the
         // Mismatch spread still lets B's sensor and VCA drift a little.
-        const double det = globals.externalSidechain ? 0.5 * (scL + scR) * inputScale
+        const double det = globals.externalSidechain ? 0.5 * (scL + scR) * scale
                                                      : 0.5 * (vL + vR);
         ch[0].detect (det);
         ch[1].detect (det);
@@ -185,8 +192,8 @@ public:
         // --- VCAs and output stages ----------------------------------------
         const double nL = noiseAmp * noiseL.next();
         const double nR = noiseAmp * noiseR.next();
-        left  = ch[0].audio (vL, gL, nL) / inputScale;
-        right = ch[1].audio (vR, gR, nR) / inputScale;
+        left  = ch[0].audio (vL, gL, nL) / scale;
+        right = ch[1].audio (vR, gR, nR) / scale;
     }
 
     double gainReductionDb (int index) const { return ch[index].gainReductionDb(); }
@@ -199,26 +206,39 @@ private:
     {
         // 0 dBFS peak -> calibDbu (peak).  Vpeak = 0.775 * sqrt(2) * 10^(dBu/20)
         const double vpeakAt0dBFS = kDbuRef * std::sqrt (2.0) * dbToLin (globals.calibDbuAt0dBFS);
-        inputScale = vpeakAt0dBFS * dbToLin (globals.inputTrimDb);
+        inScale.setTarget (vpeakAt0dBFS * dbToLin (globals.inputTrimDb));
+
+        // "Modded": THAT 2180 in the VCA socket plus an op-amp swap, the
+        // classic upgrade.  Laser-trimmed symmetry, specified feedthrough and
+        // a quieter floor — the DIRT controls still work, but on a core error
+        // ~30x smaller — and the better output stage swings nearer the rails.
+        const double clean = globals.modded ? 0.03 : 1.0;
 
         // Feedthrough: up to ~3 mV per dB of gain change at full "thump".
-        const double ft = 0.003 * globals.thump;
+        const double ft = 0.003 * globals.thump * clean;
         // Component spread: B gets a slightly different symmetry trim and
         // feedthrough, and marginally different timing-cap tolerance.
         const double mm = globals.mismatch;
         ch[0].vca.feedthroughVPerDb = ft;
         ch[1].vca.feedthroughVPerDb = ft * (1.0 + 0.6 * mm);
-        ch[0].vca.symmetryErr = 0.003;
-        ch[1].vca.symmetryErr = 0.003 * (1.0 + 0.8 * mm);
+        ch[0].vca.symmetryErr = 0.003 * clean;
+        ch[1].vca.symmetryErr = 0.003 * clean * (1.0 + 0.8 * mm);
         ch[1].detector.rmsCoef = tcCoef (kRmsTauSec * (1.0 + 0.1 * mm), sampleRate);
+        for (auto& c : ch)
+        {
+            c.vca.oddBase    = 0.010  * clean;
+            c.vca.oddPerDb   = 0.0045 * clean;
+            c.stage.rail      = globals.modded ? 14.5 : 13.5;
+            c.stage.softStart = globals.modded ? 13.2 : 12.0;
+        }
 
         // Noise floor: about -90 dBu with noise at 1.0 (white, pre-coupling cap,
         // so it ends up shaped by the output stage like the real thing).
-        noiseAmp = globals.noise * kDbuRef * dbToLin (-90.0) * std::sqrt (2.0);
+        noiseAmp = globals.noise * kDbuRef * dbToLin (-90.0) * std::sqrt (2.0) * clean;
     }
 
     double sampleRate = 48000.0;
-    double inputScale = 1.0;
+    Smoothed inScale;
     double noiseAmp   = 0.0;
     GlobalParams globals;
     Noise noiseL, noiseR { 0x1234ABCDu };

@@ -31,6 +31,21 @@ inline double tcCoef (double seconds, double fs)
 }
 
 //==============================================================================
+// One-pole parameter smoother for gains the user can ride or automate
+// (input trim, output).  Keeps block-rate parameter jumps from zippering;
+// not part of the circuit model.
+//==============================================================================
+struct Smoothed
+{
+    void prepare (double tauSec, double fs) { coef = tcCoef (tauSec, fs); }
+    void setTarget (double t) { tgt = t; }
+    void snap() { cur = tgt; }
+    inline double next() { cur += (tgt - cur) * coef; return cur; }
+
+    double cur = 1.0, tgt = 1.0, coef = 1.0;
+};
+
+//==============================================================================
 // Op-amp output stage (LF347 / TL07x class).
 //
 // The op-amp itself is linear until it runs into the rails; the output

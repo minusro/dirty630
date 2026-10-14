@@ -151,7 +151,8 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
     makeKnob (noise,     ids::noise,     "NOISE");
     makeKnob (mismatch,  ids::mismatch,  "MISMATCH");
     makeKnob (mix,       ids::mix,       "MIX");
-    makeToggle (extSc, ids::extSc, "EXT SC");
+    makeToggle (extSc,  ids::extSc,  "EXT SC");
+    makeToggle (modded, ids::modded, "MODDED");
 
     oversamp.addItemList ({ "1x", "2x", "4x" }, 1);
     addAndMakeVisible (oversamp);
@@ -247,7 +248,8 @@ void Dirty630Editor::resized()
     // Bottom row: global and "dirt" controls.
     const int top = 206, knobW = 80, knobH = 68;
     int x = 16;
-    extSc.button.setBounds (x, top + 20, 70, 24); x += 90;
+    extSc.button.setBounds  (x, top + 6,  70, 24);
+    modded.button.setBounds (x, top + 38, 70, 24); x += 90;
     for (auto* k : { &inputTrim, &calib })
     {
         // 4 px higher than the knob row suggests: puts the label base at the

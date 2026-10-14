@@ -5,8 +5,10 @@ the end of every session._
 
 ## Where things stand
 
-Version 0.3. Built, validated and rendered on macOS. The repo lives at
-`~/Documents/JUCE/dirty630` on Daniel's Mac.
+Version 0.4. Built, validated and rendered on macOS; CI green on both
+platforms since 0.3. The repo lives at `~/Documents/JUCE/dirty630` on
+Daniel's Mac. The listening pass happened: "sounds about right". The Windows
+installer/plugin has not been tried on a real Windows machine yet.
 
 | Item | State |
 |---|---|
@@ -20,7 +22,21 @@ Version 0.3. Built, validated and rendered on macOS. The repo lives at
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
 
-## Changed in 0.3 (this session)
+## Changed in 0.4 (this session)
+
+- **Modded toggle** (under EXT SC): THAT 2180 + op-amp swap — symmetry,
+  odd harmonics, feedthrough and noise ×0.03, rails 14.5 V (`MODEL.md`,
+  "Modded"). New `modded` param; test checks unity THD drops ~7x and the
+  gain law is untouched.
+- **Input/Output smoothing**: 10 ms one-pole `Smoothed` inside the model, no
+  more zipper under automation.
+- **Oversampling**: all three factors pre-built in `prepareToPlay`; factor
+  switch is now allocation-free. Default is **4x**.
+- **GR meter**: block-max value + instant-attack/~40 dB/s-release ballistics.
+- **Presets**: Default / Drum Bus Smash / NIN Bass / Snare Gate as host
+  programs; they only touch the strip controls and mix.
+
+## Changed in 0.3 (previous session)
 
 - **Dry/wet.** `mix` parameter (0–100 %, default 100) blended by
   `juce::dsp::DryWetMixer` outside the circuit model, dry path delayed by the

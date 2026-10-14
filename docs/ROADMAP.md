@@ -7,11 +7,11 @@ Ordered by value. Tick items off here and note the commit.
 - [x] `auval` and pluginval (strictness 5) clean (0.2, 2026-10-14)
 - [ ] Listening pass in the Standalone and in a DAW; note anything that sounds wrong in `HANDOFF.md`
 - [x] Screenshot the editor; fix layout overlaps (0.2 — bottom row was clipped; editor now single-strip 980×300)
-- [ ] Windows VST3 via GitHub Actions (workflow + Inno installer pushed; confirm the first run goes green and the artifacts install)
+- [x] Windows VST3 + installers via GitHub Actions (CI green since 0.3; artifacts not yet tried on a Windows machine)
 
 ## 2. Correctness polish
-- [ ] `SmoothedValue` on Input trim and Output (zipper noise under automation)
-- [ ] Move oversampling-factor rebuild off the audio thread (pre-build all three, swap a pointer)
+- [x] Smoothing on Input trim and Output (0.4 — `Smoothed` in the model, 10 ms)
+- [x] Oversampling-factor switch allocation-free (0.4 — all three pre-built, pointer swap)
 - [ ] Denormal check at low levels with the coupling cap (`ScopedNoDenormals` is on; verify on Intel)
 - [ ] Mono-in / stereo-out and sidechain-mono layouts tested in Logic and Live
 - [ ] Latency reporting sanity: compare 1×/2×/4× phase against a dry track
@@ -22,11 +22,11 @@ with recorded WAVs (or a pointer to where they live) and a fitting script.
 Priority order: RMS τ → static curves → THD vs GR → feedthrough → gate.
 
 ## 4. Features worth having
-- [ ] GR meter driven by a smoothed peak-hold value rather than block-end sample
+- [x] GR meter driven by block max + ballistics (0.4)
 - [ ] Input/output level LEDs (the hardware has a −∞/+ clip style pair)
-- [ ] Preset set: the classic "drum bus smash", "NIN bass", "gate for snare" settings
+- [x] Preset set: Default / Drum Bus Smash / NIN Bass / Snare Gate (0.4)
 - [ ] Resizable editor (scale factor from APVTS state)
-- [ ] "Modded" toggle: THAT 2180 VCA + good op-amps → symmetry error, feedthrough and noise all near zero, rail at 14.5 V. Trivial to add, worth a lot to users.
+- [x] "Modded" toggle (0.4): THAT 2180 + op-amp swap, core errors ×0.03, rail 14.5 V
 
 ## 5. Later / maybe
 - [ ] CLAP format (clap-juce-extensions)
