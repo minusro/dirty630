@@ -29,6 +29,19 @@ and reopen, or bump `VERSION` in `CMakeLists.txt`.
 Local JUCE: `-DDIRTY630_JUCE_DIR=/path/to/JUCE`.
 Plugin off, tests only: `-DDIRTY630_BUILD_PLUGIN=OFF`.
 
+## Installers
+
+CI (`.github/workflows/build.yml`) builds both plugins and both installers on
+every push to main and uploads them as artifacts:
+
+- macOS: `installer/macos/make_pkg.sh` wraps the VST3 in a `.pkg`
+  (`pkgbuild`) installing to `/Library/Audio/Plug-Ins/VST3`. Works locally:
+  `sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 <ver> dist/dirty630-<ver>-macos.pkg`
+- Windows: `installer/windows/dirty630.iss` (Inno Setup, preinstalled on the
+  GitHub runner) installs the bundle to `C:\Program Files\Common Files\VST3`.
+
+Neither is code-signed yet; macOS users need right-click → Open on the pkg.
+
 ## DSP tests (any platform, no JUCE)
 
 ```sh

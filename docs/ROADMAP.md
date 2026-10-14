@@ -7,7 +7,7 @@ Ordered by value. Tick items off here and note the commit.
 - [x] `auval` and pluginval (strictness 5) clean (0.2, 2026-10-14)
 - [ ] Listening pass in the Standalone and in a DAW; note anything that sounds wrong in `HANDOFF.md`
 - [x] Screenshot the editor; fix layout overlaps (0.2 — bottom row was clipped; editor now single-strip 980×300)
-- [ ] Windows VST3 via GitHub Actions (no local Windows toolchain)
+- [ ] Windows VST3 via GitHub Actions (workflow + Inno installer pushed; confirm the first run goes green and the artifacts install)
 
 ## 2. Correctness polish
 - [ ] `SmoothedValue` on Input trim and Output (zipper noise under automation)

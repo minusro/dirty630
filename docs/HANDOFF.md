@@ -5,7 +5,7 @@ the end of every session._
 
 ## Where things stand
 
-Version 0.2. Built, validated and rendered on macOS. The repo lives at
+Version 0.3. Built, validated and rendered on macOS. The repo lives at
 `~/Documents/JUCE/dirty630` on Daniel's Mac.
 
 | Item | State |
@@ -19,6 +19,18 @@ Version 0.2. Built, validated and rendered on macOS. The repo lives at
 | Listening test | **Not done** |
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
+
+## Changed in 0.3 (this session)
+
+- **Dry/wet.** `mix` parameter (0–100 %, default 100) blended by
+  `juce::dsp::DryWetMixer` outside the circuit model, dry path delayed by the
+  oversampling latency. Big MIX knob bottom-right, spanning both editor rows.
+- **Installers.** CI now also builds a macOS `.pkg` (`pkgbuild`, installs to
+  `/Library/Audio/Plug-Ins/VST3`) and a Windows Inno Setup exe (installs to
+  `C:\Program Files\Common Files\VST3`), uploaded as artifacts alongside the
+  raw VST3s (`docs/BUILD.md`, "Installers"). Unsigned.
+- Small-knob labels raised 4 px so their base sits at the same distance from
+  the 12-o'clock tick as on the big knobs. auval + pluginval re-passed.
 
 ## Changed in 0.2 (this session)
 

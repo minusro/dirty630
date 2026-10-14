@@ -64,7 +64,7 @@ private:
         GrMeter meter;
     } strip;
 
-    Knob inputTrim, calib, thump, noise, mismatch;
+    Knob inputTrim, calib, thump, noise, mismatch, mix;
     Toggle extSc;
     juce::ComboBox oversamp;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oversampAttachment;

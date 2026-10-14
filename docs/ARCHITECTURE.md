@@ -78,6 +78,7 @@ state compatibility; the `B` set and `link` were removed in 0.2. All ranges:
 | mismatch | 0…1 | 0.5 | B-channel spread of symmetry/feedthrough/RMS τ |
 | extSc | bool | off | needs sidechain bus enabled by host |
 | oversamp | 1×/2×/4× | 2× | |
+| mix | 0…100 % | 100 | dry/wet; dry path latency-compensated by `juce::dsp::DryWetMixer` |
 
 ## Buses
 
@@ -87,7 +88,8 @@ the output is taken from channel A.
 
 ## Editor
 
-980 × 300, fixed: one strip of controls plus the global/DIRT row. The header
+980 × 300, fixed: one strip of controls plus the global/DIRT row, and a large
+MIX (dry/wet) knob in the bottom-right corner spanning both rows. The header
 shows `version <m.n[.p]>  -  <build date/time>  -  minusro`, stamped into
 `BuildInfo.h` by `cmake/BuildInfo.cmake` on every build. `Dirty630LookAndFeel`
 draws rotary knobs (ring + cap + pointer), toggle buttons as rounded
