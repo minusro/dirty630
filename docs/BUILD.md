@@ -45,7 +45,19 @@ Apple Developer membership plus notarisation on macOS, and a hardware-token
 or cloud-signing certificate on Windows. Until that is worth paying for, the
 warnings users see and the way past them live in `installer/README.md`,
 next to the scripts that build the installers — keep it in step with any
-change to either.
+change to either. That file covers the installers only; anything else about
+getting a build in place belongs here.
+
+Placing a downloaded bundle by hand, rather than running the installer:
+
+```sh
+xattr -dr com.apple.quarantine DIRTY630.vst3        # macOS only
+cp -R DIRTY630.vst3 ~/Library/Audio/Plug-Ins/VST3/
+```
+
+The `xattr` line is not optional on macOS. Anything downloaded carries a
+quarantine flag, and some hosts skip a quarantined bundle in silence, which
+presents as the plugin never appearing rather than as an error.
 
 ## DSP tests (any platform, no JUCE)
 
