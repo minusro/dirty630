@@ -34,14 +34,14 @@ jobs:
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-${{ env.VER }}-windows-vst3
+          name: dirty630-v${{ env.VER }}-windows-vst3
           path: build/dirty630_artefacts/Release/VST3/DIRTY630.vst3
           if-no-files-found: error
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-${{ env.VER }}-windows-installer
+          name: dirty630-v${{ env.VER }}-windows-installer
           path: dist/*.exe
           if-no-files-found: error
 
@@ -70,14 +70,14 @@ jobs:
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-${{ env.VER }}-macos-vst3
+          name: dirty630-v${{ env.VER }}-macos-vst3
           path: build/dirty630_artefacts/Release/VST3/DIRTY630.vst3
           if-no-files-found: error
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: dirty630-${{ env.VER }}-macos-installer
+          name: dirty630-v${{ env.VER }}-macos-installer
           path: dist/*.pkg
           if-no-files-found: error
 
