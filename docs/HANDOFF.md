@@ -14,13 +14,26 @@ installer/plugin has not been tried on a real Windows machine yet.
 |---|---|
 | DSP model (`src/dsp/`) | 30 automated checks pass at 96 kHz, on AppleClang too |
 | JUCE processor | One set of controls for both channels; detector = mono sum of input (or of ext SC); stereo + optional sidechain bus, 1×/2×/4× oversampling, APVTS state |
-| Editor | One channel strip + DIRT row, 980×300; hardware-style black fascia, brand header, LED ladder; build stamp under the header |
+| Editor | One strip + DIRT row, 980×300; hardware-style black fascia, brand header, LED ladder; build stamp under the header |
 | macOS build | Universal VST3/AU/Standalone build clean (Xcode 26.3); one `-Wshadow-field` fixed |
 | `auval` | **Passed** (`aufx D630 Minu`) |
 | pluginval | **Passed** at strictness 5 (VST3) |
 | Listening test | **Not done** |
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
+
+## Changed in 0.6
+
+- **Wordmark redrawn** to match the real logo (`docs/design/`): rounded, not
+  chamfered, leaning forward ~11°, initial at full cap height and the rest at
+  80%. Built as centre lines stroked with round caps/joins rather than filled
+  outlines. Watch the stroke weight: at the first attempt (3.0 on 72%-height
+  letters) the S counters filled in and it read "MINU8".
+- **CLEAN ↔ BYPASS swapped.** CLEAN (was MODDED) joins PEAK/SOFT in the
+  switch column; BYPASS moves to the global row under EXT SC. The parameter
+  id stays `"modded"` — ids are saved state — so `ids::clean` deliberately
+  holds the old string, and the DSP still calls the flag `modded` because it
+  names the hardware change rather than its effect.
 
 ## Changed in 0.5.2
 

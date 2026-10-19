@@ -100,19 +100,19 @@ g++ -std=c++17 -O2 -I src tests/dsp_tests.cpp -o dsp_tests && ./dsp_tests
 
 or `ctest --test-dir build`. They check the static curve, knee shape, inf:1
 limiting, attack/release timing, peak vs RMS, gate, unity-path level and THD,
-distortion vs gain reduction, rail clipping, feedthrough thump, the Modded
-core and the shared detector.
+distortion vs gain reduction, rail clipping, feedthrough thump, the clean
+(modded) core and the shared detector.
 
 ## Controls
 
 One set of controls drives both channels, which are always linked: Threshold
 −40…+20 dB, Ratio 1:1…∞:1, Attack 0.1…200 ms, Release 50 ms…3 s, Output
 ±20 dB, Peak/RMS (Peak by default), Hard/Soft knee, Gate threshold
-(off…+10 dB), Gate rate 20 ms…2 s, Bypass. Detection runs on the mono sum of
-the programme, or of the sidechain when **Ext SC** is on.
+(off…+10 dB), Gate rate 20 ms…2 s, and **Clean** (the THAT 2180 and op-amp
+swap people fit, so almost none of the DIRT below). Detection runs on the
+mono sum of the programme, or of the sidechain when **Ext SC** is on.
 
-Global: Ext sidechain (bus 2), **Modded** (THAT 2180 and better op-amps —
-the usual upgrade, so almost none of the DIRT below), Input trim, `0 dBFS =`
+Global: Ext sidechain (bus 2), Bypass, Input trim, `0 dBFS =`
 calibration (what full scale means in dBu at the input jack; 18 dBu by
 default, so rail clipping starts around +22 dBu), Oversampling 1×/2×/4×
 (4× by default), and **Mix** for parallel compression.
