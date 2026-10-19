@@ -4,6 +4,8 @@ A software model of a cheap, loud late-80s stereo VCA compressor/gate — the
 one that turned up in every project studio and got used on drums precisely
 because it was not clean. VST3 and AU, macOS and Windows.
 
+![The DIRTY630 plugin window](docs/editor.png)
+
 It is modelled from the circuit rather than fitted to a response, so the
 parts that misbehave misbehave for the right reasons: a dbx-style RMS
 sensor, a VCA with its symmetry and control-feedthrough errors, a
