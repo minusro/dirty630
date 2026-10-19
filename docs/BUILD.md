@@ -43,10 +43,10 @@ every push to main and uploads them as artifacts:
 Neither is code-signed, by decision rather than oversight: signing needs an
 Apple Developer membership plus notarisation on macOS, and a hardware-token
 or cloud-signing certificate on Windows. Until that is worth paying for, the
-warnings users see and the way past them live in `installer/README.md`,
-next to the scripts that build the installers — keep it in step with any
-change to either. That file covers the installers only; anything else about
-getting a build in place belongs here.
+warnings users see and the way past them are under "Install" in the root
+`README.md`, which is the user-facing document — keep it in step with any
+change to either installer. It covers the installers only; anything else
+about getting a build in place belongs here.
 
 Placing a downloaded bundle by hand, rather than running the installer:
 

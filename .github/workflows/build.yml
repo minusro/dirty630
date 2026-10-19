@@ -3,6 +3,7 @@ name: build
 on:
   push:
     branches: [main]
+    tags: ['v*']          # a tag also publishes a GitHub Release
   workflow_dispatch:
 
 jobs:
@@ -79,3 +80,46 @@ jobs:
           name: dirty630-${{ env.VER }}-macos-installer
           path: dist/*.pkg
           if-no-files-found: error
+
+  # Tag pushes only: collect the two installers the jobs above built and
+  # attach them to a Release, so there is a download that needs no GitHub
+  # account and does not expire the way run artifacts do.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-installer'
+          merge-multiple: true
+          path: dist
+
+      - name: Check both installers are present
+        run: |
+          ls -l dist
+          test -n "$(find dist -name '*.pkg' -print -quit)" || { echo "::error::no macOS pkg"; exit 1; }
+          test -n "$(find dist -name '*.exe' -print -quit)" || { echo "::error::no Windows exe"; exit 1; }
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Unsigned builds. Your operating system will block the installer the"
+            echo "first time — the [README](https://github.com/$GITHUB_REPOSITORY#install)"
+            echo "has the steps for getting past that on macOS and on Windows."
+            echo
+            echo "- **macOS**: \`dirty630-*-macos.pkg\` — installs to \`/Library/Audio/Plug-Ins/VST3\`"
+            echo "- **Windows**: \`dirty630-*-windows.exe\` — installs to \`C:\\Program Files\\Common Files\\VST3\`"
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "DIRTY630 ${GITHUB_REF_NAME#v}" \
+            --notes-file notes.md \
+            --generate-notes

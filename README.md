@@ -1,101 +1,79 @@
-# dirty630
+# DIRTY630
 
-A white-box software model of a budget late-80s/90s stereo VCA compressor/gate
-(the 3630), built as a JUCE plugin. VST3 and AU on macOS, VST3 on Linux.
+A software model of a cheap, loud late-80s stereo VCA compressor/gate — the
+one that turned up in every project studio and got used on drums precisely
+because it was not clean. VST3 and AU, macOS and Windows.
 
-The DSP is written from the circuit, not fitted to a response: a dbx-style
-log-domain RMS sensor, a 2150-class VCA with its symmetry and feedthrough
-errors, diode-steered attack/release RC, the resistor-blend soft knee, a
-chattery one-dB-hysteresis gate, and LF347 stages that saturate at the rails.
-The deliberately imperfect bits are on their own knobs under **DIRT** so you
-can turn them off.
+It is modelled from the circuit rather than fitted to a response, so the
+parts that misbehave misbehave for the right reasons: a dbx-style RMS
+sensor, a VCA with its symmetry and control-feedthrough errors, a
+diode-steered attack/release network, and op-amp stages that saturate at the
+rails. Those faults are on their own knobs, so you can dial them out — or
+switch to **CLEAN**, which is the hardware's well-known chip-swap mod.
 
 ## Install
 
-Download the newest green run's artifact for your platform from the
-[Actions](https://github.com/minusro/dirty630/actions) tab. The builds are
-not code-signed, so both operating systems block the installer until told
-otherwise: **[installer/README.md](installer/README.md)** has the steps.
+Download the installer for your platform from the
+[latest release](https://github.com/minusro/dirty630/releases/latest).
 
-## Build on macOS
+Neither installer is code-signed, so each operating system blocks it the
+first time and has to be told to go ahead. Both write to the system-wide
+VST3 folder, so both ask for an administrator password.
 
-Requires Xcode command line tools and CMake ≥ 3.22. JUCE 8.0.4 is fetched
-automatically on first configure.
+### macOS — `dirty630-<version>-macos.pkg`
 
-```sh
-git clone https://github.com/minusro/dirty630.git
-cd dirty630
-cmake -B build -G Xcode
-cmake --build build --config Release
-```
+1. Double-click the pkg. macOS refuses it, saying it "could not verify that
+   this software is free from malware". Click **Done**.
+2. Open **System Settings → Privacy & Security** and scroll to the Security
+   section. Click **Open Anyway** on the message naming the pkg.
+3. Confirm, then enter your password when the installer asks.
 
-Builds a universal (arm64 + x86_64) VST3, AU and Standalone. With
-`COPY_PLUGIN_AFTER_BUILD` on, the VST3 lands in `~/Library/Audio/Plug-Ins/VST3`
-and the AU in `~/Library/Audio/Plug-Ins/Components`. Run `auval -v aufx D630 Minu`
-to validate the AU after a build, and restart Logic/Live if it doesn't show up.
+Installs `DIRTY630.vst3` into `/Library/Audio/Plug-Ins/VST3`.
 
-Ninja works too: `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release`.
+### Windows — `dirty630-<version>-windows.exe`
 
-If you keep a JUCE checkout around, pass `-DDIRTY630_JUCE_DIR=/path/to/JUCE`
-to skip the download.
+1. Run the exe. SmartScreen shows a blue **Windows protected your PC**
+   panel. Click **More info**.
+2. Click **Run anyway**.
+3. Accept the User Account Control prompt.
 
-## DSP tests
+Installs `DIRTY630.vst3` into `C:\Program Files\Common Files\VST3`.
 
-The model has no JUCE dependency, so the tests build with any C++17 compiler:
+Then rescan plugins in your DAW. To remove the plugin later, delete the
+`DIRTY630.vst3` folder from the path above.
 
-```sh
-g++ -std=c++17 -O2 -I src tests/dsp_tests.cpp -o dsp_tests && ./dsp_tests
-```
+## Using it
 
-or `ctest --test-dir build`. They check the static curve, knee shape, inf:1
-limiting, attack/release timing, peak vs RMS, gate, unity-path level and THD,
-distortion vs gain reduction, rail clipping, feedthrough thump, the clean
-(modded) core and the shared detector.
+One set of controls drives both channels, which are always linked — the
+detector listens to the mono sum of the programme, or of the sidechain when
+**EXT SC** is on.
 
-## Controls
+| Control | What it does |
+|---|---|
+| Threshold, Ratio | −40…+20 dB, 1:1 to ∞:1. Past about 99:1 it limits. |
+| Attack, Release | 0.1…200 ms, 50 ms…3 s. Fast attack plus a high Thump is where the character lives. |
+| Output | ±20 dB of make-up, after the compressor and before the output stage. |
+| PEAK | Peak detection instead of RMS. On by default; RMS is the gentler of the two. |
+| SOFT | A 10 dB knee instead of a hard one. |
+| CLEAN | The chip-swap mod: almost none of the distortion, feedthrough or noise below. |
+| Gate Thresh, Gate Rate | Off…+10 dB and 20 ms…2 s. It chatters, as the original does. |
+| Mix | Dry/wet, for parallel compression. The dry path stays time-aligned. |
+| Oversample | 1×/2×/4×. 4× by default; drop it if you need the CPU back. |
+| 0 dBFS = | What full scale means in dBu at the input. 18 dBu by default, so the rails clip around +22 dBu. |
 
-One set of controls drives both channels, which are always linked: Threshold
-−40…+20 dB, Ratio 1:1…∞:1, Attack 0.1…200 ms, Release 50 ms…3 s, Output
-±20 dB, Peak/RMS (Peak by default), Hard/Soft knee, Gate threshold
-(off…+10 dB), Gate rate 20 ms…2 s, and **Clean** (the THAT 2180 and op-amp
-swap people fit, so almost none of the DIRT below). Detection runs on the
-mono sum of the programme, or of the sidechain when **Ext SC** is on.
+**DIRT** is the deliberate ugliness, each 0…1: **Thump** is control-voltage
+feedthrough, heard as a knock on fast attacks; **Noise** is the output
+floor; **Mismatch** is how far the two channels drift apart. CLEAN overrides
+all three.
 
-Global: Ext sidechain (bus 2), Bypass, Input trim, `0 dBFS =`
-calibration (what full scale means in dBu at the input jack; 18 dBu by
-default, so rail clipping starts around +22 dBu), Oversampling 1×/2×/4×
-(4× by default), and **Mix** for parallel compression.
+Four presets ship with it: Default, Drum Bus Smash, NIN Bass and Snare Gate.
 
-DIRT: **Thump** (control-voltage feedthrough, 0…3 mV/dB), **Noise** (−90 dBu
-floor), **Mismatch** (channel-to-channel spread of symmetry trim, feedthrough
-and timing cap).
+## Building it yourself
 
-## Model notes and what to calibrate
+A locally built plugin is signed by nobody but also blocked by nobody. See
+[`docs/BUILD.md`](docs/BUILD.md) to build and test, and the rest of
+[`docs/`](docs/) for how the model works — [`MODEL.md`](docs/MODEL.md) has
+every constant, where it came from, and how to measure the real value on a
+real unit.
 
-Each block lives in `src/dsp/`:
-
-| File | Block | Hardware origin |
-|---|---|---|
-| `Circuit.h` | `OpAmpStage` | LF347 output swing, ±13.5 V, saturation from 12 V |
-| | `RmsDetector` | dbx 2252-family log-domain RMS sensor; one-pole on mean-square, τ = 20 ms; peak-hold cap τ = 10 ms in PEAK mode |
-| | `Vca` | 2150-class: exact dB gain law, 2nd-harmonic symmetry error, 3rd-harmonic rising with gain reduction, CV feedthrough |
-| | `CouplingCap` | 10 µF / 100 k output coupling (turns feedthrough DC steps into thumps) |
-| `Sidechain.h` | `GainComputer` | threshold/ratio op-amp, hard knee ≈ 0.5 dB diode rounding, soft knee 10 dB resistor blend |
-| | `TimingNetwork` | diode-steered attack/release RC with a 0.15 dB dead band |
-| | `Gate` | 0.5 ms open, Rate-controlled close, 1 dB hysteresis, −80 dB depth |
-| `Compressor3630.h` | `Channel`, `Compressor3630` | signal flow, shared detection, calibration, channel mismatch |
-
-The constants that are educated guesses rather than datasheet values, in the
-order they are worth measuring on a real unit:
-
-1. `Compressor3630::kRmsTauSec` and `kPeakHoldSec` (timing caps). Measure with
-   a tone burst at Attack = 0.1 ms and watch the gain-reduction envelope.
-2. `Vca` distortion coefficients. Sweep level at 0, 10, 20 dB of reduction and
-   fit the 2nd/3rd harmonic.
-3. `Vca::feedthroughVPerDb` at Thump = 1. Hit it with a step and read the DC
-   offset before the coupling cap.
-4. Knee widths and `TimingNetwork::kDeadBandDb`.
-5. Gate hysteresis and depth.
-
-Everything is in volts at the circuit node, so numbers read from a scope drop
-straight in.
+GPLv3, matching JUCE's licence.
