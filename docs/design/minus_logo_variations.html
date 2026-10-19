@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MINUS Wordmark Variations</title>
+<style>
+  :root {
+    --panel:   #121214;
+    --panelhi: #1b1c1f;
+    --ink:     #f2f2f0;
+    --dim:     #9a9a97;
+    --brand:   #3fb6e0;
+    --red:     #e8261c;
+    --line:    #2a2b2f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 80px;
+    background: var(--panel);
+    color: var(--ink);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; }
+
+  header { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: .14em; text-transform: uppercase; }
+  header p { margin: 0; color: var(--dim); max-width: 60ch; }
+
+  h2 {
+    margin: 36px 0 14px; font-size: 11px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--dim); font-weight: 700;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+  .card {
+    background: var(--panelhi);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 18px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .card.pick { border-color: var(--brand); }
+
+  .tag {
+    display: inline-block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dim); font-weight: 700;
+  }
+  .tag b { color: var(--ink); }
+  .card.pick .tag b { color: var(--brand); }
+
+  .stage {
+    min-height: 96px; display: flex; align-items: center; justify-content: center;
+    background: var(--panel); border-radius: 4px; padding: 16px 12px;
+    /* the faint horizontal grain of the fascia */
+    background-image: repeating-linear-gradient(
+      to bottom, rgba(255,255,255,.022) 0 1px, transparent 1px 2px);
+  }
+  .stage svg { display: block; }
+
+  /* the header band, so each mark can be judged in situ */
+  .insitu {
+    background: var(--panelhi);
+    border-radius: 4px; padding: 9px 14px;
+    display: flex; align-items: center; gap: 14px;
+    border: 1px solid #000;
+  }
+  .insitu .title {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .13em; white-space: nowrap;
+  }
+  .insitu .sub {
+    font-size: 9px; letter-spacing: .1em; color: #d8d8d6; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .note { margin: 0; color: var(--dim); font-size: 12.5px; }
+
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .swatch { flex: 1 1 140px; }
+  .swatch .stage { min-height: 72px; }
+  .swatch .tag { display: block; margin-top: 7px; text-align: center; }
+
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--dim); font-size: 12.5px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Minus Wordmark</h1>
+    <p>Variations on the brand mark in the DIRTY630 header, drawn in the squared,
+       chamfered letterforms of the hardware's own logo. Each is shown large and
+       again at the size it actually renders in the plugin, on the panel colours.
+       V1 is what currently ships.</p>
+  </header>
+
+  <h2>Letterform variations</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2>V1 in other colours</h2>
+  <div class="swatches" id="colours"></div>
+
+  <footer>
+    Generated from the same glyph geometry as <code>minusWordmark()</code> in
+    <code>src/PluginEditor.cpp</code> — cap height 14 units, stroke and chamfer
+    per variant. Picking one is a change of a few constants in that function.
+  </footer>
+
+</div>
+
+<script>
+const H = 14;              // cap height, in glyph units
+const DEG = Math.PI / 180;
+
+// Each glyph is a closed polygon, parameterised by stroke (s), chamfer (c)
+// and its own advance width — the same construction as the C++ version.
+function glyphPolys(p) {
+  const { s, c, wM, wI, wN, wU, wS } = p;
+  const mid1 = (H - s) / 2, mid2 = mid1 + s;   // S crossbar
+  const apexO = H * 0.457, apexI = H * 0.80;   // M valley, outer and inner
+  const nTop = H * 0.671, nBot = H * 0.329;    // N diagonal
+
+  return [
+    { w: wM, pts: [[0,H],[0,c],[c,0],[c+0.8,0],[wM/2,apexO],[wM-c-0.8,0],[wM-c,0],[wM,c],[wM,H],
+                   [wM-s,H],[wM-s,apexO-0.4],[wM/2+0.8,apexI],[wM/2-0.8,apexI],[s,apexO-0.4],[s,H]] },
+    { w: wI, pts: [[0,c],[c,0],[wI,0],[wI,H-c],[wI-c,H],[0,H]] },
+    { w: wN, pts: [[0,H],[0,c],[c,0],[c+1,0],[wN-s,nTop],[wN-s,0],[wN,0],[wN,H-c],
+                   [wN-c,H],[wN-c-1,H],[s,nBot],[s,H]] },
+    { w: wU, pts: [[0,c],[c,0],[s,0],[s,H-s],[wU-s,H-s],[wU-s,0],[wU,0],[wU,H-c],
+                   [wU-c,H],[c,H],[0,H-c]] },
+    { w: wS, pts: [[c,0],[wS,0],[wS,s],[s,s],[s,mid1],[wS,mid1],[wS,H-c],[wS-c,H],
+                   [0,H],[0,H-s],[wS-s,H-s],[wS-s,mid2],[0,mid2],[0,c]] },
+  ];
+}
+
+function wordmark(p) {
+  const polys = glyphPolys(p);
+  let pen = 0, d = '';
+  for (const gl of polys) {
+    d += 'M' + gl.pts.map(([x, y]) => `${(pen + x).toFixed(2)},${y.toFixed(2)}`).join('L') + 'Z';
+    pen += gl.w + p.gap;
+  }
+  return { d, width: pen - p.gap };
+}
+
+// Render one variant as an SVG at the given cap height in pixels.
+function svg(p, capPx, colour) {
+  const { d, width } = wordmark(p);
+  const slant = p.slant || 0;
+  const shear = Math.tan(slant * DEG) * H;        // extra width the shear adds
+  const lead  = p.lead ? p.lead : 0;              // leading minus bar, in units
+  const leadW = lead ? lead + p.gap * 1.6 : 0;
+
+  const totalW = width + shear + leadW;
+  const k = capPx / H;
+  const pad = 0.6;
+
+  let inner = '';
+  if (lead) {
+    const y = (H - p.s) / 2;
+    inner += `<rect x="0" y="${y.toFixed(2)}" width="${lead}" height="${p.s}"/>`;
+  }
+  inner += `<path d="${d}" transform="translate(${leadW},0)"/>`;
+
+  const skew = slant ? `transform="skewX(${-slant}) translate(${shear.toFixed(2)},0)"` : '';
+
+  return `<svg width="${((totalW + pad * 2) * k).toFixed(1)}" height="${((H + pad * 2) * k).toFixed(1)}"
+    viewBox="${-pad} ${-pad} ${totalW + pad * 2} ${H + pad * 2}" fill="${colour}">
+    <g ${skew}>${inner}</g></svg>`;
+}
+
+// Badge treatment: the mark knocked out of a filled tile.
+function badgeSvg(p, capPx) {
+  const { d, width } = wordmark(p);
+  const k = capPx / H, padX = 4.5, padY = 3.4;
+  const w = width + padX * 2, h = H + padY * 2;
+  return `<svg width="${(w * k).toFixed(1)}" height="${(h * k).toFixed(1)}" viewBox="0 0 ${w} ${h}">
+    <defs><mask id="m${capPx}${width.toFixed(0)}">
+      <rect width="${w}" height="${h}" fill="#fff"/>
+      <path d="${d}" transform="translate(${padX},${padY})" fill="#000"/>
+    </mask></defs>
+    <rect width="${w}" height="${h}" rx="1.6" fill="var(--brand)" mask="url(#m${capPx}${width.toFixed(0)})"/>
+  </svg>`;
+}
+
+const BASE = { s: 3, c: 2.4, gap: 2.4, wM: 13, wI: 3, wN: 12, wU: 12, wS: 11 };
+const v = (o) => Object.assign({}, BASE, o);
+
+const VARIANTS = [
+  { id: 'V1', name: 'Current',      p: v({}),
+    note: 'What ships today: 3-unit stroke, 2.4 chamfer cut at the top-left and bottom-right of each letter.', pick: true },
+  { id: 'V2', name: 'Deep cut',     p: v({ c: 4.4 }),
+    note: 'Same skeleton, much larger chamfers. Reads sharper and more aggressive; the I becomes a leaning sliver.' },
+  { id: 'V3', name: 'Square',       p: v({ c: 0 }),
+    note: 'No chamfers at all. Blunt and industrial — closer to a stencil than to the hardware logo.' },
+  { id: 'V4', name: 'Oblique',      p: v({ slant: 11 }),
+    note: 'V1 sheared 11°. The forward lean most 80s rack logos have; costs a little width.' },
+  { id: 'V5', name: 'Heavy',        p: v({ s: 4.2, c: 2.8, wM: 14.5, wN: 13, wU: 13, wS: 12, wI: 4.2 }),
+    note: 'Thicker strokes and tighter counters. Holds up best at header size and on a bright background.' },
+  { id: 'V6', name: 'Light & wide', p: v({ s: 2.1, c: 1.8, gap: 5.2 }),
+    note: 'Thin strokes, generous tracking. Quieter and more contemporary, less like period hardware.' },
+  { id: 'V7', name: 'Condensed',    p: v({ gap: 1.6, wM: 11, wI: 3, wN: 10, wU: 10, wS: 9.5 }),
+    note: 'Narrow and tightly set, so the mark takes noticeably less of the header band.' },
+  { id: 'V8', name: 'Minus mark',   p: v({ lead: 7 }),
+    note: 'A minus bar leads the word, making the name literal and giving the mark something to read as an icon.' },
+  { id: 'V9', name: 'Badge',        p: v({}), badge: true,
+    note: 'V1 knocked out of a solid tile — the strongest at small sizes, but a heavy block in a thin header.' },
+];
+
+const grid = document.getElementById('grid');
+grid.innerHTML = VARIANTS.map(x => `
+  <div class="card${x.pick ? ' pick' : ''}">
+    <span class="tag"><b>${x.id} · ${x.name}</b></span>
+    <div class="stage">${x.badge ? badgeSvg(x.p, 46) : svg(x.p, 52, 'var(--brand)')}</div>
+    <div class="insitu">
+      ${x.badge ? badgeSvg(x.p, 15) : svg(x.p, 17, 'var(--brand)')}
+      <span class="title">DIRTY630 COMPRESSOR</span>
+      <span class="sub">RMS/PEAK STEREO COMPRESSOR LIMITER WITH GATE</span>
+    </div>
+    <p class="note">${x.note}</p>
+  </div>`).join('');
+
+const COLOURS = [
+  { name: 'Cyan — as the hardware', c: 'var(--brand)' },
+  { name: 'White — as the legends', c: 'var(--ink)' },
+  { name: 'Red — as DIRT and PEAK', c: 'var(--red)' },
+  { name: 'Dim — recessive',        c: 'var(--dim)' },
+];
+document.getElementById('colours').innerHTML = COLOURS.map(x => `
+  <div class="swatch card">
+    <div class="stage">${svg(BASE, 38, x.c)}</div>
+    <span class="tag">${x.name}</span>
+  </div>`).join('');
+</script>
+</body>
+</html>
