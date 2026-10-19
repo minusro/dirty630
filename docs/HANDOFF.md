@@ -16,7 +16,7 @@ installer/plugin has not been tried on a real Windows machine yet.
 | JUCE processor | One set of controls for both channels; detector = mono sum of input (or of ext SC); stereo + optional sidechain bus, 1×/2×/4× oversampling, APVTS state |
 | Editor | One channel strip + DIRT row, 980×300; hardware-style black fascia, brand header, LED ladder; build stamp under the header |
 | macOS build | Universal VST3/AU/Standalone build clean (Xcode 26.3); one `-Wshadow-field` fixed |
-| `auval` | **Passed** (`aufx D630 Mnro`) |
+| `auval` | **Passed** (`aufx D630 Minu`) |
 | pluginval | **Passed** at strictness 5 (VST3) |
 | Listening test | **Not done** |
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
@@ -25,8 +25,17 @@ installer/plugin has not been tried on a real Windows machine yet.
 ## Changed in 0.5 (this session)
 
 - **Company is "minus"** (was minusro): `COMPANY_NAME`, bundle/package IDs
-  (`com.minus.dirty630`), Inno publisher, header byline. The GitHub account
-  and clone URL are still `minusro`.
+  (`com.minus.dirty630`), Inno publisher, header byline, and the
+  manufacturer code `Mnro` → **`Minu`** (FourCC, so "Minus" truncates). That
+  code feeds the AU registration *and* JUCE's VST3 UID, so 0.5.1 is a
+  different plugin to any host that saw an earlier build — sessions made
+  with one would show it missing. Fine while nothing has shipped; do not
+  change it again after release. The GitHub account and clone URL are still
+  `minusro`.
+- **Brand wordmark** drawn as vector letterforms (`minusWordmark()` in
+  `PluginEditor.cpp`): squared geometric caps, 3-unit stroke on a 14-unit
+  cap height, 45° chamfers at top-left and bottom-right, in the panel
+  logo's cyan.
 - **PEAK defaults on**, including in the Default preset.
 - **Front-panel look** (`docs/design/panel-reference.png`): black brushed
   fascia with horizontal grain, white silkscreen, black knurled knob caps

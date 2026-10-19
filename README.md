@@ -24,7 +24,7 @@ cmake --build build --config Release
 
 Builds a universal (arm64 + x86_64) VST3, AU and Standalone. With
 `COPY_PLUGIN_AFTER_BUILD` on, the VST3 lands in `~/Library/Audio/Plug-Ins/VST3`
-and the AU in `~/Library/Audio/Plug-Ins/Components`. Run `auval -v aufx D630 Mnro`
+and the AU in `~/Library/Audio/Plug-Ins/Components`. Run `auval -v aufx D630 Minu`
 to validate the AU after a build, and restart Logic/Live if it doesn't show up.
 
 Ninja works too: `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release`.
