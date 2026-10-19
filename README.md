@@ -15,7 +15,7 @@ can turn them off.
 Download the newest green run's artifact for your platform from the
 [Actions](https://github.com/minusro/dirty630/actions) tab. The builds are
 not code-signed, so both operating systems warn before letting you proceed:
-**[installer/INSTALL.md](installer/INSTALL.md)** has the steps, for the
+**[installer/README.md](installer/README.md)** has the steps, for the
 installers and for placing the bundle by hand.
 
 ## Build on macOS

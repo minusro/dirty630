@@ -43,7 +43,7 @@ every push to main and uploads them as artifacts:
 Neither is code-signed, by decision rather than oversight: signing needs an
 Apple Developer membership plus notarisation on macOS, and a hardware-token
 or cloud-signing certificate on Windows. Until that is worth paying for, the
-warnings users see and the way past them live in `installer/INSTALL.md`,
+warnings users see and the way past them live in `installer/README.md`,
 next to the scripts that build the installers — keep it in step with any
 change to either.
 
