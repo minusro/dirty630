@@ -21,8 +21,47 @@ namespace
     const Colour kLedGreen (0xff35c43a);
     const Colour kLedOff   (0xff241c1a);
     const Colour kButtonOn (0xffe8261c);
+    const Colour kBrand    (0xff3fb6e0);   // the panel logo's cyan
 
     constexpr int kHeaderH = 40;   // branding band at the top of the fascia
+}
+
+//==============================================================================
+// The MINUS wordmark, drawn in the squared letterforms of the logo the 3630
+// wears: geometric caps on a 14-unit cap height, 3 units of stroke, and 45
+// degree chamfers cut at the top-left and bottom-right of each silhouette.
+static Path minusWordmark()
+{
+    Path p;
+    float pen = 0.0f;
+
+    auto glyph = [&p, &pen] (float advance, std::initializer_list<Point<float>> pts)
+    {
+        bool first = true;
+        for (const auto& pt : pts)
+        {
+            const Point<float> q (pen + pt.x, pt.y);
+            if (first) { p.startNewSubPath (q); first = false; }
+            else       { p.lineTo (q); }
+        }
+        p.closeSubPath();
+        pen += advance;
+    };
+
+    constexpr float gap = 2.4f;
+
+    glyph (13.0f + gap, { {0,14}, {0,2.4f}, {2.4f,0}, {3.2f,0}, {6.5f,6.4f}, {9.8f,0},
+                          {10.6f,0}, {13,2.4f}, {13,14}, {10,14}, {10,6.0f},
+                          {7.3f,11.2f}, {5.7f,11.2f}, {3,6.0f}, {3,14} });                    // M
+    glyph (3.0f + gap,  { {0,2.4f}, {2.4f,0}, {3,0}, {3,11.6f}, {0.6f,14}, {0,14} });          // I
+    glyph (12.0f + gap, { {0,14}, {0,2.4f}, {2.4f,0}, {3.4f,0}, {9,9.4f}, {9,0}, {12,0},
+                          {12,11.6f}, {9.6f,14}, {8.6f,14}, {3,4.6f}, {3,14} });               // N
+    glyph (12.0f + gap, { {0,2.4f}, {2.4f,0}, {3,0}, {3,11}, {9,11}, {9,0}, {12,0},
+                          {12,11.6f}, {9.6f,14}, {2.4f,14}, {0,11.6f} });                      // U
+    glyph (11.0f,       { {2.4f,0}, {11,0}, {11,3}, {3,3}, {3,5.5f}, {11,5.5f}, {11,11.6f},
+                          {8.6f,14}, {0,14}, {0,11}, {8,11}, {8,8.5f}, {0,8.5f}, {0,2.4f} });  // S
+
+    return p;
 }
 
 //==============================================================================
@@ -283,14 +322,19 @@ void Dirty630Editor::paint (Graphics& g)
     screw (16.0f, kHeaderH * 0.5f);
     screw ((float) getWidth() - 16.0f, kHeaderH * 0.5f);
 
-    // Brand mark: a "minus" bar in a rounded tile, the Alesis logo's slot.
+    // Brand wordmark, in the slot the manufacturer's logo occupies.
     const float logoX = 34.0f, logoY = kHeaderH * 0.5f;
+    float logoRight = logoX;
     {
-        auto tile = Rectangle<float> (46.0f, 22.0f).withCentre ({ logoX + 23.0f, logoY });
-        g.setColour (kLegend);
-        g.fillRoundedRectangle (tile, 3.0f);
-        g.setColour (kPanelHi);
-        g.fillRect (Rectangle<float> (26.0f, 4.0f).withCentre (tile.getCentre()));
+        const float capH = 17.0f;
+        auto wm = minusWordmark();
+        const auto wb = wm.getBounds();
+        const float s = capH / wb.getHeight();
+        wm.applyTransform (AffineTransform::scale (s)
+                               .translated (logoX, logoY - capH * 0.5f));
+        g.setColour (kBrand);
+        g.fillPath (wm);
+        logoRight = logoX + wb.getWidth() * s;
     }
 
     // "DIRTY630 COMPRESSOR" in medium, then the light-weight description,
@@ -311,7 +355,7 @@ void Dirty630Editor::paint (Graphics& g)
     const float textY = logoY - 9.0f;
     g.setColour (kLegend);
     g.setFont (Font (FontOptions (15.0f, Font::bold)));
-    const float afterTitle = spaced ("DIRTY630 COMPRESSOR", logoX + 60.0f, textY, 18.0f, 1.6f);
+    const float afterTitle = spaced ("DIRTY630 COMPRESSOR", logoRight + 22.0f, textY, 18.0f, 1.6f);
 
     g.setColour (kLegend.withAlpha (0.82f));
     g.setFont (Font (FontOptions (11.5f, Font::plain)));

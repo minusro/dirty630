@@ -46,5 +46,5 @@ g++ -std=c++17 -O2 -I src tests/dsp_tests.cpp -o /tmp/dsp_tests && /tmp/dsp_test
 
 # Full build (macOS)
 cmake -B build -G Xcode && cmake --build build --config Release
-auval -v aufx D630 Mnro
+auval -v aufx D630 Minu
 ```

@@ -19,7 +19,7 @@ Produces universal (arm64 + x86_64, deployment target 11.0):
 Validate:
 
 ```sh
-auval -v aufx D630 Mnro            # AU
+auval -v aufx D630 Minu            # AU
 pluginval --strictness-level 5 --validate build/dirty630_artefacts/Release/VST3/dirty630.vst3
 ```
 
