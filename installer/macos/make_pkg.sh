@@ -11,6 +11,6 @@ out="$3"
 
 pkgbuild --component "$vst3" \
          --install-location /Library/Audio/Plug-Ins/VST3 \
-         --identifier com.minusro.dirty630.vst3 \
+         --identifier com.minus.dirty630.vst3 \
          --version "$ver" \
          "$out"
