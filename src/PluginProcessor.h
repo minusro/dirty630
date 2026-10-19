@@ -27,7 +27,9 @@ namespace ids
     static constexpr const char* extSc     = "extSc";
     static constexpr const char* oversamp  = "oversamp";
     static constexpr const char* mix       = "mix";
-    static constexpr const char* modded    = "modded";
+    // Shown as CLEAN since 0.6; the stored id keeps its original spelling,
+    // because ids are saved state and must never be renamed.
+    static constexpr const char* clean     = "modded";
 
     inline juce::String ch (const char* base, int index) { return juce::String (base) + (index == 0 ? "A" : "B"); }
 }

@@ -27,40 +27,71 @@ namespace
 }
 
 //==============================================================================
-// The MINUS wordmark, drawn in the squared letterforms of the logo the 3630
-// wears: geometric caps on a 14-unit cap height, 3 units of stroke, and 45
-// degree chamfers cut at the top-left and bottom-right of each silhouette.
+// The MINUS wordmark, after the logo the hardware wears: a geometric face
+// leaning forward, its initial at full cap height and the rest of the word
+// about three quarters of it.  The letters are built as centre lines and then
+// stroked with round caps and joins, which is what gives the logo its soft
+// terminals - drawing them as filled outlines would mean describing every
+// one of those arcs by hand.
 static Path minusWordmark()
 {
+    constexpr float H     = 14.0f;   // cap height of the initial
+    // The stroke has to clear the counters of the small letters: the S bowls
+    // are only a quarter of the word's height each, so a weight that looks
+    // right on the M closes them up into a figure eight.
+    constexpr float sw    = 2.5f;    // stroke weight
+    constexpr float small = 0.80f;   // height of the letters after the first
+    constexpr float gap   = 1.7f;    // space between adjacent outer edges
+    constexpr float slant = 0.19f;   // tangent of the forward lean, about 11 degrees
+
+    // Centre lines sit half a stroke inside the letter's outer bounds.
+    constexpr float top  = sw * 0.5f;
+    constexpr float base = H - sw * 0.5f;
+    constexpr float sTop = H * (1.0f - small) + sw * 0.5f;   // top of the small letters
+
+    // Widths measured centre to centre; the stroke adds sw to each.
+    constexpr float wM = 11.0f, wN = 7.0f, wU = 7.0f, wS = 7.0f;
+
+    const float smallH = base - sTop;
+    Path k;
+    float x = 0.0f;
+
+    k.startNewSubPath (x, base);                                    // M, full height
+    k.lineTo (x, top);
+    k.lineTo (x + wM * 0.5f, top + (base - top) * 0.62f);
+    k.lineTo (x + wM, top);
+    k.lineTo (x + wM, base);
+    x += wM + sw + gap;
+
+    k.startNewSubPath (x, sTop);                                    // I
+    k.lineTo (x, base);
+    x += sw + gap;
+
+    k.startNewSubPath (x, base);                                    // N
+    k.lineTo (x, sTop);
+    k.lineTo (x + wN, base);
+    k.lineTo (x + wN, sTop);
+    x += wN + sw + gap;
+
+    k.startNewSubPath (x, sTop);                                    // U
+    k.lineTo (x, sTop + smallH * 0.55f);
+    k.quadraticTo (x, base, x + wU * 0.5f, base);
+    k.quadraticTo (x + wU, base, x + wU, sTop + smallH * 0.55f);
+    k.lineTo (x + wU, sTop);
+    x += wU + sw + gap;
+
+    k.startNewSubPath (x + wS, sTop + smallH * 0.20f);              // S
+    k.quadraticTo (x + wS, sTop, x + wS * 0.5f, sTop);
+    k.quadraticTo (x, sTop, x, sTop + smallH * 0.26f);
+    k.quadraticTo (x, sTop + smallH * 0.46f, x + wS * 0.52f, sTop + smallH * 0.5f);
+    k.quadraticTo (x + wS, sTop + smallH * 0.54f, x + wS, sTop + smallH * 0.76f);
+    k.quadraticTo (x + wS, base, x + wS * 0.5f, base);
+    k.quadraticTo (x, base, x, sTop + smallH * 0.82f);
+
     Path p;
-    float pen = 0.0f;
-
-    auto glyph = [&p, &pen] (float advance, std::initializer_list<Point<float>> pts)
-    {
-        bool first = true;
-        for (const auto& pt : pts)
-        {
-            const Point<float> q (pen + pt.x, pt.y);
-            if (first) { p.startNewSubPath (q); first = false; }
-            else       { p.lineTo (q); }
-        }
-        p.closeSubPath();
-        pen += advance;
-    };
-
-    constexpr float gap = 2.4f;
-
-    glyph (13.0f + gap, { {0,14}, {0,2.4f}, {2.4f,0}, {3.2f,0}, {6.5f,6.4f}, {9.8f,0},
-                          {10.6f,0}, {13,2.4f}, {13,14}, {10,14}, {10,6.0f},
-                          {7.3f,11.2f}, {5.7f,11.2f}, {3,6.0f}, {3,14} });                    // M
-    glyph (3.0f + gap,  { {0,2.4f}, {2.4f,0}, {3,0}, {3,11.6f}, {0.6f,14}, {0,14} });          // I
-    glyph (12.0f + gap, { {0,14}, {0,2.4f}, {2.4f,0}, {3.4f,0}, {9,9.4f}, {9,0}, {12,0},
-                          {12,11.6f}, {9.6f,14}, {8.6f,14}, {3,4.6f}, {3,14} });               // N
-    glyph (12.0f + gap, { {0,2.4f}, {2.4f,0}, {3,0}, {3,11}, {9,11}, {9,0}, {12,0},
-                          {12,11.6f}, {9.6f,14}, {2.4f,14}, {0,11.6f} });                      // U
-    glyph (11.0f,       { {2.4f,0}, {11,0}, {11,3}, {3,3}, {3,5.5f}, {11,5.5f}, {11,11.6f},
-                          {8.6f,14}, {0,14}, {0,11}, {8,11}, {8,8.5f}, {0,8.5f}, {0,2.4f} });  // S
-
+    PathStrokeType (sw, PathStrokeType::curved, PathStrokeType::rounded).createStrokedPath (p, k);
+    // Lean the finished outline; shearing against y puts the top edge ahead.
+    p.applyTransform (AffineTransform::shear (-slant, 0.0f).translated (slant * H, 0.0f));
     return p;
 }
 
@@ -229,9 +260,9 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
     makeKnob (s.output,    ids::ch (ids::output, 0),    "OUTPUT");
     makeKnob (s.gateThr,   ids::ch (ids::gateThr, 0),   "GATE THRESH");
     makeKnob (s.gateRate,  ids::ch (ids::gateRate, 0),  "GATE RATE");
-    makeToggle (s.peak,   ids::ch (ids::peak, 0),   "PEAK");
-    makeToggle (s.soft,   ids::ch (ids::soft, 0),   "SOFT");
-    makeToggle (s.bypass, ids::ch (ids::bypass, 0), "BYPASS");
+    makeToggle (s.peak,  ids::ch (ids::peak, 0), "PEAK");
+    makeToggle (s.soft,  ids::ch (ids::soft, 0), "SOFT");
+    makeToggle (s.clean, ids::clean,             "CLEAN");
     addAndMakeVisible (s.meter);
 
     makeKnob (inputTrim, ids::inputTrim, "INPUT");
@@ -240,8 +271,8 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
     makeKnob (noise,     ids::noise,     "NOISE");
     makeKnob (mismatch,  ids::mismatch,  "MISMATCH");
     makeKnob (mix,       ids::mix,       "MIX");
-    makeToggle (extSc,  ids::extSc,  "EXT SC");
-    makeToggle (modded, ids::modded, "MODDED");
+    makeToggle (extSc,  ids::extSc,                "EXT SC");
+    makeToggle (bypass, ids::ch (ids::bypass, 0),  "BYPASS");
 
     oversamp.addItemList ({ "1x", "2x", "4x" }, 1);
     addAndMakeVisible (oversamp);
@@ -326,11 +357,12 @@ void Dirty630Editor::paint (Graphics& g)
     const float logoX = 34.0f, logoY = kHeaderH * 0.5f;
     float logoRight = logoX;
     {
-        const float capH = 17.0f;
+        const float capH = 18.0f;
         auto wm = minusWordmark();
         const auto wb = wm.getBounds();
         const float s = capH / wb.getHeight();
-        wm.applyTransform (AffineTransform::scale (s)
+        wm.applyTransform (AffineTransform::translation (-wb.getX(), -wb.getY())
+                               .scaled (s, s)
                                .translated (logoX, logoY - capH * 0.5f));
         g.setColour (kBrand);
         g.fillPath (wm);
@@ -388,9 +420,9 @@ void Dirty630Editor::resized()
             x += knobW;
         }
         x += 10;
-        s.peak.button.setBounds (x, top + 30, 64, 24);
-        s.soft.button.setBounds (x, top + 62, 64, 24);
-        s.bypass.button.setBounds (x, top + 94, 64, 24);
+        s.peak.button.setBounds  (x, top + 30, 64, 24);
+        s.soft.button.setBounds  (x, top + 62, 64, 24);
+        s.clean.button.setBounds (x, top + 94, 64, 24);
         x += 84;
         Knob* gate[] = { &s.gateThr, &s.gateRate };
         for (auto* k : gate)
@@ -409,7 +441,7 @@ void Dirty630Editor::resized()
     const int top = 206, knobW = 80, knobH = 68;
     int x = 16;
     extSc.button.setBounds  (x, top + 6,  70, 24);
-    modded.button.setBounds (x, top + 38, 70, 24); x += 90;
+    bypass.button.setBounds (x, top + 38, 70, 24); x += 90;
     for (auto* k : { &inputTrim, &calib })
     {
         // 4 px higher than the knob row suggests: puts the label base at the

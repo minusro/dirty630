@@ -58,7 +58,7 @@ AudioProcessorValueTreeState::ParameterLayout Dirty630Processor::createLayout()
                     StringArray { "1x", "2x", "4x" }, 2));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::mix, 1 }, "Mix",
                     NormalisableRange<float> (0.0f, 100.0f, 1.0f), 100.0f, AudioParameterFloatAttributes().withLabel ("%")));
-    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::modded, 1 }, "Modded", false));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::clean, 1 }, "Clean", false));
 
     return layout;
 }
@@ -134,7 +134,8 @@ void Dirty630Processor::updateParameters()
     g.noise             = get (ids::noise);
     g.mismatch          = get (ids::mismatch);
     g.externalSidechain = get (ids::extSc) > 0.5f && getBus (true, 1) != nullptr && getBus (true, 1)->isEnabled();
-    g.modded            = get (ids::modded) > 0.5f;
+    // The panel calls it CLEAN; the model calls it what it is, a modded unit.
+    g.modded            = get (ids::clean) > 0.5f;
     model.setGlobalParams (g);
 
     dryWet.setWetMixProportion (get (ids::mix) * 0.01f);

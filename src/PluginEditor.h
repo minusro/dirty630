@@ -66,12 +66,12 @@ private:
     struct ChannelStrip
     {
         Knob threshold, ratio, attack, release, output, gateThr, gateRate;
-        Toggle peak, soft, bypass;
+        Toggle peak, soft, clean;      // the three switches beside the knobs
         GrMeter meter;
     } strip;
 
     Knob inputTrim, calib, thump, noise, mismatch, mix;
-    Toggle extSc, modded;
+    Toggle extSc, bypass;              // the global row's pair
     juce::ComboBox oversamp;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> oversampAttachment;
     juce::Label oversampLabel, dirtLabel;
