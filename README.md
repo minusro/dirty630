@@ -68,6 +68,8 @@ all three.
 
 Four presets ship with it: Default, Drum Bus Smash, NIN Bass and Snare Gate.
 
+What changed between versions is in [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Building it yourself
 
 A locally built plugin is signed by nobody but also blocked by nobody. See
