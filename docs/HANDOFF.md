@@ -43,7 +43,7 @@ installer/plugin has not been tried on a real Windows machine yet.
   lower-case, and it is not part of plugin identity). Installer scripts, CI
   paths and docs follow the new bundle names; delete any old lowercase
   bundle from `~/Library/Audio/Plug-Ins/` or you will have both.
-- **Install steps documented** in `installer/README.md` for the unsigned builds
+- **Install steps documented** in the root `README.md` for the unsigned builds
   (Gatekeeper "Open Anyway", SmartScreen "Run anyway", and the `xattr`
   quarantine strip for hand-placed bundles). Signing is deliberately
   deferred — see `docs/BUILD.md`.
