@@ -36,7 +36,9 @@ file that matches your task:
   `cmake/BuildInfo.cmake` on every build; a .0 patch digit is hidden). Started
   at 0.1. Small fixes and tweaks bump the patch (m.n → m.n.1 → m.n.2); a batch
   of real changes bumps the minor (m.n → m.(n+1).0); a major change jumps to
-  the next whole `(n+1).0.0`.
+  the next whole `(n+1).0.0`. Record the change in `CHANGELOG.md`, written for
+  someone using the plugin rather than reading the diff — and say so plainly
+  when an upgrade breaks their saved sessions.
 
 ## Quick commands
 
