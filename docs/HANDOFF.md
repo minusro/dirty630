@@ -22,6 +22,16 @@ installer/plugin has not been tried on a real Windows machine yet.
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
 
+## Releasing
+
+`v0.6.0` is the first tagged release:
+<https://github.com/minusro/dirty630/releases/tag/v0.6.0>. Pushing a `v*`
+tag builds both platforms and attaches the two installers to a Release;
+pushes to main still only produce run artifacts. `gh` is installed and
+authenticated here, so `gh run watch <id>` and `gh release view <tag>` work
+directly. The committed `Plugins/` folder of 0.4.0 zips was removed in
+favour of Releases — do not add binaries back to the repo.
+
 ## Changed in 0.6
 
 - **Wordmark redrawn** to match the real logo (`docs/design/`): rounded, not
