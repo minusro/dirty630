@@ -4,16 +4,12 @@ Notable changes per version, newest first. Versions come from
 `project(dirty630 VERSION …)` in `CMakeLists.txt` and are stamped into the
 plugin header at build time; the policy for bumping them is in `CLAUDE.md`.
 
-No version has been tagged or published as a release yet — `v0.6.0` would be
-the first.
-
 ## Unreleased
 
-- Pushing a `v*` tag now publishes both installers to a GitHub Release.
-- README rewritten as the user-facing document: install steps and a control
-  reference. Build, model and calibration material lives in `docs/`.
-
 ## 0.6.0 — 2026-10-19
+
+First tagged release. Installers are attached to it; earlier versions were
+only ever built in CI.
 
 - **CLEAN and BYPASS swap places.** CLEAN joins PEAK and SOFT in the switch
   column; BYPASS moves to the global row beside EXT SC.
