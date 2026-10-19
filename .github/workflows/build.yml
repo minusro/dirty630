@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dirty630-${{ env.VER }}-windows-vst3
-          path: build/dirty630_artefacts/Release/VST3/dirty630.vst3
+          path: build/dirty630_artefacts/Release/VST3/DIRTY630.vst3
           if-no-files-found: error
 
       - name: Upload installer
@@ -64,13 +64,13 @@ jobs:
       - name: Installer (pkgbuild)
         run: |
           mkdir -p dist
-          sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 "$VER" "dist/dirty630-$VER-macos.pkg"
+          sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/DIRTY630.vst3 "$VER" "dist/dirty630-$VER-macos.pkg"
 
       - name: Upload VST3
         uses: actions/upload-artifact@v4
         with:
           name: dirty630-${{ env.VER }}-macos-vst3
-          path: build/dirty630_artefacts/Release/VST3/dirty630.vst3
+          path: build/dirty630_artefacts/Release/VST3/DIRTY630.vst3
           if-no-files-found: error
 
       - name: Upload installer

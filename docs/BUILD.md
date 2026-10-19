@@ -12,15 +12,15 @@ cmake --build build --config Release
 
 Produces universal (arm64 + x86_64, deployment target 11.0):
 
-- `build/dirty630_artefacts/Release/VST3/dirty630.vst3` → copied to `~/Library/Audio/Plug-Ins/VST3`
-- `.../AU/dirty630.component` → `~/Library/Audio/Plug-Ins/Components`
-- `.../Standalone/dirty630.app`
+- `build/dirty630_artefacts/Release/VST3/DIRTY630.vst3` → copied to `~/Library/Audio/Plug-Ins/VST3`
+- `.../AU/DIRTY630.component` → `~/Library/Audio/Plug-Ins/Components`
+- `.../Standalone/DIRTY630.app`
 
 Validate:
 
 ```sh
 auval -v aufx D630 Minu            # AU
-pluginval --strictness-level 5 --validate build/dirty630_artefacts/Release/VST3/dirty630.vst3
+pluginval --strictness-level 5 --validate build/dirty630_artefacts/Release/VST3/DIRTY630.vst3
 ```
 
 If Logic doesn't list the AU after a rebuild: `killall -9 AudioComponentRegistrar`
@@ -36,11 +36,15 @@ every push to main and uploads them as artifacts:
 
 - macOS: `installer/macos/make_pkg.sh` wraps the VST3 in a `.pkg`
   (`pkgbuild`) installing to `/Library/Audio/Plug-Ins/VST3`. Works locally:
-  `sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/dirty630.vst3 <ver> dist/dirty630-<ver>-macos.pkg`
+  `sh installer/macos/make_pkg.sh build/dirty630_artefacts/Release/VST3/DIRTY630.vst3 <ver> dist/dirty630-<ver>-macos.pkg`
 - Windows: `installer/windows/dirty630.iss` (Inno Setup, preinstalled on the
   GitHub runner) installs the bundle to `C:\Program Files\Common Files\VST3`.
 
-Neither is code-signed yet; macOS users need right-click → Open on the pkg.
+Neither is code-signed, by decision rather than oversight: signing needs an
+Apple Developer membership plus notarisation on macOS, and a hardware-token
+or cloud-signing certificate on Windows. Until that is worth paying for, the
+warnings users see and the way past them are documented under "Install" in
+`README.md` — keep that section in step with any installer change.
 
 ## DSP tests (any platform, no JUCE)
 

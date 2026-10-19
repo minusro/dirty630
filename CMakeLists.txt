@@ -8,7 +8,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "" FORCE)
 endif()
 
-project(dirty630 VERSION 0.5.1 LANGUAGES C CXX)
+project(dirty630 VERSION 0.5.2 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -57,7 +57,7 @@ if(DIRTY630_BUILD_PLUGIN)
         COMPANY_NAME                "minus"
         PLUGIN_MANUFACTURER_CODE    Minu
         PLUGIN_CODE                 D630
-        PRODUCT_NAME                "dirty630"
+        PRODUCT_NAME                "DIRTY630"
         BUNDLE_ID                   "com.minus.dirty630"
         FORMATS                     ${DIRTY630_FORMATS}
         IS_SYNTH                    FALSE
