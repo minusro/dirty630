@@ -22,6 +22,21 @@ installer/plugin has not been tried on a real Windows machine yet.
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
 
+## Changed in 0.5.2
+
+- **Product name is `DIRTY630`**, so the bundles are `DIRTY630.vst3` /
+  `.component` / `.app`. The CMake target, repo, installer filenames and
+  bundle ID stay lowercase `dirty630` (bundle IDs are conventionally
+  lower-case, and it is not part of plugin identity). Installer scripts, CI
+  paths and docs follow the new bundle names; delete any old lowercase
+  bundle from `~/Library/Audio/Plug-Ins/` or you will have both.
+- **Install steps documented** in `README.md` for the unsigned builds
+  (Gatekeeper "Open Anyway", SmartScreen "Run anyway", and the `xattr`
+  quarantine strip for hand-placed bundles). Signing is deliberately
+  deferred — see `docs/BUILD.md`.
+- README's Controls section was still describing per-channel A/B strips and
+  the Link switch, both gone since 0.2; corrected, and Modded/Mix added.
+
 ## Changed in 0.5 (this session)
 
 - **Company is "minus"** (was minusro): `COMPANY_NAME`, bundle/package IDs

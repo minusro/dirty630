@@ -1,7 +1,7 @@
 ; Inno Setup script: installs the Windows VST3 bundle into the standard
 ; system-wide VST3 folder (C:\Program Files\Common Files\VST3).
 ;
-; Build:  iscc /DVersion=<m.n.p> /DVst3Dir=<dir containing dirty630.vst3> dirty630.iss
+; Build:  iscc /DVersion=<m.n.p> /DVst3Dir=<dir containing DIRTY630.vst3> dirty630.iss
 
 #ifndef Version
   #define Version "0.0"
@@ -27,4 +27,4 @@ OutputBaseFilename=dirty630-{#Version}-windows
 LicenseFile=..\..\LICENSE
 
 [Files]
-Source: "{#Vst3Dir}\dirty630.vst3\*"; DestDir: "{commoncf64}\VST3\dirty630.vst3"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "{#Vst3Dir}\DIRTY630.vst3\*"; DestDir: "{commoncf64}\VST3\DIRTY630.vst3"; Flags: recursesubdirs createallsubdirs ignoreversion
