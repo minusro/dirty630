@@ -14,7 +14,7 @@ installer/plugin has not been tried on a real Windows machine yet.
 |---|---|
 | DSP model (`src/dsp/`) | 30 automated checks pass at 96 kHz, on AppleClang too |
 | JUCE processor | One set of controls for both channels; detector = mono sum of input (or of ext SC); stereo + optional sidechain bus, 1×/2×/4× oversampling, APVTS state |
-| Editor | One channel strip + DIRT row, 980×300; header shows `version m.n - build date/time - minusro`, stamped each build |
+| Editor | One channel strip + DIRT row, 980×300; hardware-style black fascia, brand header, LED ladder; build stamp under the header |
 | macOS build | Universal VST3/AU/Standalone build clean (Xcode 26.3); one `-Wshadow-field` fixed |
 | `auval` | **Passed** (`aufx D630 Mnro`) |
 | pluginval | **Passed** at strictness 5 (VST3) |
@@ -22,7 +22,21 @@ installer/plugin has not been tried on a real Windows machine yet.
 | Windows build | Not possible locally (macOS); plan is a GitHub Actions workflow |
 | Calibration against a real 3630 | **Not done** — all "educated guess" constants are listed in `MODEL.md` |
 
-## Changed in 0.4 (this session)
+## Changed in 0.5 (this session)
+
+- **Company is "minus"** (was minusro): `COMPANY_NAME`, bundle/package IDs
+  (`com.minus.dirty630`), Inno publisher, header byline. The GitHub account
+  and clone URL are still `minusro`.
+- **PEAK defaults on**, including in the Default preset.
+- **Front-panel look** (`docs/design/panel-reference.png`): black brushed
+  fascia with horizontal grain, white silkscreen, black knurled knob caps
+  with a white pointer, square latching switches that light red, and round
+  green/amber/red LEDs under a "GAIN REDUCTION dB" caption. The header is a
+  40 px band with rack screws, a minus brand tile, "DIRTY630 COMPRESSOR" in
+  medium and "RMS/PEAK STEREO COMPRESSOR LIMITER WITH GATE" in light, both
+  letter-spaced; the build stamp moved underneath it.
+
+## Changed in 0.4 (previous session)
 
 - **Modded toggle** (under EXT SC): THAT 2180 + op-amp swap — symmetry,
   odd harmonics, feedthrough and noise ×0.03, rails 14.5 V (`MODEL.md`,

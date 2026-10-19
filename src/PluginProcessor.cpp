@@ -34,7 +34,7 @@ AudioProcessorValueTreeState::ParameterLayout Dirty630Processor::createLayout()
                     NormalisableRange<float> (50.0f, 3000.0f, 1.0f, 0.4f), 300.0f, AudioParameterFloatAttributes().withStringFromValueFunction (msText)));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::output, 0), 1 }, "Output",
                     NormalisableRange<float> (-20.0f, 20.0f, 0.1f), 0.0f, AudioParameterFloatAttributes().withLabel ("dB")));
-    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::peak, 0), 1 }, "Peak", false));
+    layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::peak, 0), 1 }, "Peak", true));
     layout.add (std::make_unique<AudioParameterBool>  (ParameterID { ids::ch (ids::soft, 0), 1 }, "Soft Knee", false));
     layout.add (std::make_unique<AudioParameterFloat> (ParameterID { ids::ch (ids::gateThr, 0), 1 }, "Gate Threshold",
                     NormalisableRange<float> (-70.0f, 10.0f, 0.1f), -70.0f,
@@ -234,7 +234,7 @@ namespace
     {
         { "Default",
           { { "thresholdA", 0.0f },  { "ratioA", 4.0f },   { "attackA", 10.0f },  { "releaseA", 300.0f },
-            { "outputA", 0.0f },     { "peakA", 0.0f },    { "softA", 0.0f },     { "gateThrA", -70.0f },
+            { "outputA", 0.0f },     { "peakA", 1.0f },    { "softA", 0.0f },     { "gateThrA", -70.0f },
             { "gateRateA", 100.0f }, { "bypassA", 0.0f },  { "mix", 100.0f } } },
         // The classic drum-bus abuse: deep threshold, hard ratio, fast enough
         // to clamp the transient, release pumping with the groove.

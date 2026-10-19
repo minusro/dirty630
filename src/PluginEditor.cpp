@@ -3,19 +3,26 @@
 
 using namespace juce;
 
+// Colours taken from the 3630's own front panel: a near-black brushed
+// fascia, white silkscreen, black knurled caps with a white pointer, and
+// the green/amber/red LED ladders.
 namespace
 {
-    const Colour kPanel    (0xff1c1d20);
-    const Colour kPanelHi  (0xff26282c);
-    const Colour kLegend   (0xffe8e2d0);
-    const Colour kLegendDim(0xff8e8a7e);
-    const Colour kKnobCap  (0xff3a4250);
-    const Colour kKnobRing (0xff10a7d6);
-    const Colour kPointer  (0xfff3f0e6);
-    const Colour kLedRed   (0xffff3b2f);
-    const Colour kLedAmber (0xffffb02e);
-    const Colour kLedOff   (0xff3a2a28);
-    const Colour kButtonOn (0xffd9c78b);
+    const Colour kPanel    (0xff121214);
+    const Colour kPanelHi  (0xff1b1c1f);
+    const Colour kLegend   (0xfff2f2f0);
+    const Colour kLegendDim(0xff9a9a97);
+    const Colour kKnobCap  (0xff1a1a1c);
+    const Colour kKnobEdge (0xff3c3c40);
+    const Colour kKnobRing (0xff6e6e73);
+    const Colour kPointer  (0xfff6f6f4);
+    const Colour kLedRed   (0xffe8261c);
+    const Colour kLedAmber (0xffe8a81c);
+    const Colour kLedGreen (0xff35c43a);
+    const Colour kLedOff   (0xff241c1a);
+    const Colour kButtonOn (0xffe8261c);
+
+    constexpr int kHeaderH = 40;   // branding band at the top of the fascia
 }
 
 //==============================================================================
@@ -47,83 +54,126 @@ void Dirty630LookAndFeel::drawRotarySlider (Graphics& g, int x, int y, int w, in
     const auto centre  = bounds.getCentre();
     const float angle  = startAngle + pos * (endAngle - startAngle);
 
-    // Scale ring with tick marks, like a silk-screened legend.
-    Path track;
-    track.addCentredArc (centre.x, centre.y, radius, radius, 0.0f, startAngle, endAngle, true);
-    g.setColour (kLegendDim.withAlpha (0.35f));
-    g.strokePath (track, PathStrokeType (1.5f));
-
-    Path value;
-    value.addCentredArc (centre.x, centre.y, radius, radius, 0.0f, startAngle, angle, true);
-    g.setColour (kKnobRing);
-    g.strokePath (value, PathStrokeType (2.0f));
-
+    // Silkscreened tick scale around the pot, as printed on the fascia: a
+    // longer mark at each end and at centre, shorter ones between.
     for (int i = 0; i <= 10; ++i)
     {
         const float a = startAngle + (endAngle - startAngle) * (float) i / 10.0f;
-        const auto p1 = centre.getPointOnCircumference (radius + 3.0f, a);
-        const auto p2 = centre.getPointOnCircumference (radius + 6.0f, a);
-        g.setColour (kLegendDim);
-        g.drawLine (Line<float> (p1, p2), 1.0f);
+        const bool major = (i % 5) == 0;
+        const auto p1 = centre.getPointOnCircumference (radius + 2.0f, a);
+        const auto p2 = centre.getPointOnCircumference (radius + (major ? 7.0f : 5.0f), a);
+        g.setColour (major ? kLegend.withAlpha (0.75f) : kLegendDim.withAlpha (0.55f));
+        g.drawLine (Line<float> (p1, p2), major ? 1.4f : 1.0f);
     }
 
-    // Cap
-    const float capR = radius * 0.72f;
-    g.setColour (Colours::black.withAlpha (0.5f));
-    g.fillEllipse (Rectangle<float> (capR * 2.0f, capR * 2.0f).withCentre (centre.translated (0.0f, 1.5f)));
-    g.setGradientFill (ColourGradient (kKnobCap.brighter (0.25f), centre.x, centre.y - capR,
-                                       kKnobCap.darker (0.4f),   centre.x, centre.y + capR, false));
+    // Knurled black cap: skirt, fluted edge, domed top.
+    const float capR = radius * 0.80f;
+    g.setColour (Colours::black.withAlpha (0.6f));
+    g.fillEllipse (Rectangle<float> (capR * 2.0f, capR * 2.0f).withCentre (centre.translated (0.0f, 2.0f)));
+
+    g.setColour (kKnobEdge);
     g.fillEllipse (Rectangle<float> (capR * 2.0f, capR * 2.0f).withCentre (centre));
 
-    // Pointer
-    const auto p1 = centre.getPointOnCircumference (capR * 0.25f, angle);
-    const auto p2 = centre.getPointOnCircumference (capR * 0.92f, angle);
+    // Flutes: short radial notches around the skirt catch the light.
+    for (int i = 0; i < 24; ++i)
+    {
+        const float a = MathConstants<float>::twoPi * (float) i / 24.0f;
+        const auto q1 = centre.getPointOnCircumference (capR * 0.86f, a);
+        const auto q2 = centre.getPointOnCircumference (capR, a);
+        g.setColour (Colours::black.withAlpha (0.55f));
+        g.drawLine (Line<float> (q1, q2), 1.6f);
+    }
+
+    const float topR = capR * 0.84f;
+    g.setGradientFill (ColourGradient (kKnobCap.brighter (0.22f), centre.x, centre.y - topR,
+                                       kKnobCap,                  centre.x, centre.y + topR, false));
+    g.fillEllipse (Rectangle<float> (topR * 2.0f, topR * 2.0f).withCentre (centre));
+    g.setColour (kKnobRing.withAlpha (0.45f));
+    g.drawEllipse (Rectangle<float> (topR * 2.0f, topR * 2.0f).withCentre (centre), 1.0f);
+
+    // White pointer line running from the centre out over the skirt.
+    const auto p1 = centre.getPointOnCircumference (topR * 0.10f, angle);
+    const auto p2 = centre.getPointOnCircumference (capR * 0.98f, angle);
     g.setColour (kPointer);
-    g.drawLine (Line<float> (p1, p2), 2.5f);
+    g.drawLine (Line<float> (p1, p2), 2.2f);
 }
 
 void Dirty630LookAndFeel::drawToggleButton (Graphics& g, ToggleButton& b, bool highlighted, bool)
 {
+    // Square push-switch like the panel's latching buttons: black body that
+    // sits proud of the fascia, red face and a tiny lamp when latched.
     auto r = b.getLocalBounds().toFloat().reduced (1.0f);
     const bool on = b.getToggleState();
 
-    g.setColour (Colours::black.withAlpha (0.5f));
-    g.fillRoundedRectangle (r.translated (0.0f, 1.0f), 3.0f);
-    g.setColour (on ? kButtonOn : (highlighted ? kPanelHi.brighter (0.15f) : kPanelHi));
-    g.fillRoundedRectangle (r, 3.0f);
-    g.setColour (on ? kButtonOn.darker (0.6f) : kLegendDim.withAlpha (0.5f));
-    g.drawRoundedRectangle (r, 3.0f, 1.0f);
+    g.setColour (Colours::black.withAlpha (0.7f));
+    g.fillRoundedRectangle (r.translated (0.0f, 1.5f), 2.0f);
 
-    g.setColour (on ? kPanel : kLegend);
-    g.setFont (Font (FontOptions (10.5f, Font::bold)));
+    const Colour body = on ? kButtonOn.darker (0.25f)
+                           : (highlighted ? kPanelHi.brighter (0.3f) : kPanelHi.brighter (0.1f));
+    g.setGradientFill (ColourGradient (body.brighter (0.18f), r.getCentreX(), r.getY(),
+                                       body.darker (0.3f),    r.getCentreX(), r.getBottom(), false));
+    g.fillRoundedRectangle (r, 2.0f);
+    g.setColour (on ? kButtonOn.brighter (0.3f) : kKnobRing.withAlpha (0.5f));
+    g.drawRoundedRectangle (r, 2.0f, 1.0f);
+
+    g.setColour (on ? Colours::white : kLegend.withAlpha (0.85f));
+    g.setFont (Font (FontOptions (9.5f, Font::bold)));
     g.drawText (b.getButtonText(), r, Justification::centred);
 }
 
 //==============================================================================
 void GrMeter::paint (Graphics& g)
 {
-    // 12-segment ladder: 1 2 3 4 5 6 8 10 12 15 20 30 dB, as on the front panel.
+    // 12 round LEDs in a row with the scale printed underneath, as on the
+    // panel's GAIN REDUCTION display: green through amber into red.
     static const float steps[] = { 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 30 };
     auto r = getLocalBounds().toFloat();
     const int n = (int) std::size (steps);
     const float segW = r.getWidth() / (float) n;
+    const float ledD = jmin (segW - 4.0f, r.getHeight() - 14.0f);
 
     for (int i = 0; i < n; ++i)
     {
-        auto seg = Rectangle<float> (r.getX() + segW * (float) i, r.getY(), segW, r.getHeight() - 12.0f).reduced (1.5f, 0.0f);
+        const float cx = r.getX() + segW * ((float) i + 0.5f);
+        const float cy = r.getY() + ledD * 0.5f + 1.0f;
         const bool lit = value >= steps[i];
-        Colour c = i >= 9 ? kLedRed : kLedAmber;
-        g.setColour (lit ? c : kLedOff);
-        g.fillRoundedRectangle (seg, 2.0f);
+        const Colour c = i >= 9 ? kLedRed : (i >= 6 ? kLedAmber : kLedGreen);
+        auto led = Rectangle<float> (ledD, ledD).withCentre ({ cx, cy });
+
         if (lit)
         {
-            g.setColour (c.withAlpha (0.35f));
-            g.fillRoundedRectangle (seg.expanded (1.5f), 3.0f);
+            g.setColour (c.withAlpha (0.28f));
+            g.fillEllipse (led.expanded (3.0f));
         }
+        g.setColour (lit ? c : kLedOff);
+        g.fillEllipse (led);
+        if (lit)
+        {
+            // Specular dot, so a lit LED reads as glass rather than a disc.
+            g.setColour (Colours::white.withAlpha (0.5f));
+            g.fillEllipse (Rectangle<float> (ledD * 0.3f, ledD * 0.3f)
+                               .withCentre ({ cx - ledD * 0.16f, cy - ledD * 0.18f }));
+        }
+        g.setColour (Colours::black.withAlpha (0.6f));
+        g.drawEllipse (led, 1.0f);
+
         g.setColour (kLegendDim);
-        g.setFont (Font (FontOptions (8.5f)));
-        g.drawText (String ((int) steps[i]), seg.withY (r.getBottom() - 11.0f).withHeight (11.0f), Justification::centred);
+        g.setFont (Font (FontOptions (8.0f)));
+        g.drawText (String ((int) steps[i]), Rectangle<float> (cx - segW * 0.5f, r.getBottom() - 23.0f, segW, 11.0f),
+                    Justification::centred);
     }
+
+    // Panel caption with the rules either side, as silkscreened on the unit.
+    g.setColour (kLegendDim);
+    g.setFont (Font (FontOptions (8.5f, Font::bold)));
+    const String caption = "GAIN REDUCTION dB";
+    const float capW = GlyphArrangement::getStringWidth (g.getCurrentFont(), caption) + 12.0f;
+    auto capR = Rectangle<float> (r.getCentreX() - capW * 0.5f, r.getBottom() - 12.0f, capW, 11.0f);
+    g.drawText (caption, capR, Justification::centred);
+    g.setColour (kLegendDim.withAlpha (0.45f));
+    const float ruleY = capR.getCentreY();
+    g.drawLine (r.getX(), ruleY, capR.getX() - 4.0f, ruleY, 1.0f);
+    g.drawLine (capR.getRight() + 4.0f, ruleY, r.getRight(), ruleY, 1.0f);
 }
 
 //==============================================================================
@@ -163,7 +213,7 @@ Dirty630Editor::Dirty630Editor (Dirty630Processor& p)
 
     dirtLabel.setText ("DIRT", dontSendNotification);
     dirtLabel.setFont (Font (FontOptions (13.0f, Font::bold)));
-    dirtLabel.setColour (Label::textColourId, kKnobRing);
+    dirtLabel.setColour (Label::textColourId, kLedRed.brighter (0.2f));
     addAndMakeVisible (dirtLabel);
 
     setSize (980, 300);
@@ -199,19 +249,85 @@ void Dirty630Editor::paint (Graphics& g)
 {
     g.fillAll (kPanel);
 
-    // Brushed header stripe and a rack-rail edge above the global row.  The
-    // rail stops short of the right edge, where the big MIX knob spans both
-    // rows.
-    g.setColour (kPanelHi);
-    g.fillRect (0, 0, getWidth(), 34);
-    g.fillRect (0, 196, getWidth() - 160, 2);
+    // Brushed-aluminium fascia: faint horizontal grain over the black panel.
+    {
+        Random rng (0x3630);
+        for (int yy = 0; yy < getHeight(); yy += 2)
+        {
+            const float a = 0.012f + 0.016f * rng.nextFloat();
+            g.setColour (Colours::white.withAlpha (a));
+            g.drawHorizontalLine (yy, 0.0f, (float) getWidth());
+        }
+    }
 
+    // Header band carrying the branding, with a hairline under it.
+    g.setColour (kPanelHi);
+    g.fillRect (0, 0, getWidth(), kHeaderH);
+    g.setColour (Colours::black.withAlpha (0.8f));
+    g.fillRect (0, kHeaderH - 1, getWidth(), 1);
+    g.setColour (Colours::white.withAlpha (0.05f));
+    g.fillRect (0, 0, getWidth(), 1);
+
+    // Rack-ear screws at the far left and right of the header.
+    auto screw = [&g] (float cx, float cy)
+    {
+        auto r = Rectangle<float> (11.0f, 11.0f).withCentre ({ cx, cy });
+        g.setColour (Colours::black.withAlpha (0.75f));
+        g.fillEllipse (r.expanded (1.0f));
+        g.setGradientFill (ColourGradient (Colour (0xff5a5a5e), r.getX(), r.getY(),
+                                           Colour (0xff232326), r.getRight(), r.getBottom(), false));
+        g.fillEllipse (r);
+        g.setColour (Colours::black.withAlpha (0.8f));
+        g.drawLine (cx - 3.5f, cy - 1.2f, cx + 3.5f, cy + 1.2f, 1.4f);
+    };
+    screw (16.0f, kHeaderH * 0.5f);
+    screw ((float) getWidth() - 16.0f, kHeaderH * 0.5f);
+
+    // Brand mark: a "minus" bar in a rounded tile, the Alesis logo's slot.
+    const float logoX = 34.0f, logoY = kHeaderH * 0.5f;
+    {
+        auto tile = Rectangle<float> (46.0f, 22.0f).withCentre ({ logoX + 23.0f, logoY });
+        g.setColour (kLegend);
+        g.fillRoundedRectangle (tile, 3.0f);
+        g.setColour (kPanelHi);
+        g.fillRect (Rectangle<float> (26.0f, 4.0f).withCentre (tile.getCentre()));
+    }
+
+    // "DIRTY630 COMPRESSOR" in medium, then the light-weight description,
+    // both letter-spaced like the silkscreen.
+    auto spaced = [&g] (const String& text, float x, float y, float h, float tracking)
+    {
+        float cx = x;
+        for (auto c : text)
+        {
+            const String s = String::charToString (c);
+            const float w = GlyphArrangement::getStringWidth (g.getCurrentFont(), s);
+            g.drawText (s, Rectangle<float> (cx, y, w + 4.0f, h), Justification::centredLeft);
+            cx += w + tracking;
+        }
+        return cx;
+    };
+
+    const float textY = logoY - 9.0f;
     g.setColour (kLegend);
-    g.setFont (Font (FontOptions (20.0f, Font::bold)));
-    g.drawText ("dirty630", 16, 4, 200, 26, Justification::centredLeft);
-    g.setColour (kLegendDim);
-    g.setFont (Font (FontOptions (11.0f)));
-    g.drawText ("version " DIRTY630_VERSION "  -  " DIRTY630_BUILD_TIME "  -  minusro", 130, 4, 500, 26, Justification::centredLeft);
+    g.setFont (Font (FontOptions (15.0f, Font::bold)));
+    const float afterTitle = spaced ("DIRTY630 COMPRESSOR", logoX + 60.0f, textY, 18.0f, 1.6f);
+
+    g.setColour (kLegend.withAlpha (0.82f));
+    g.setFont (Font (FontOptions (11.5f, Font::plain)));
+    spaced ("RMS/PEAK STEREO COMPRESSOR LIMITER WITH GATE", afterTitle + 14.0f, textY + 2.0f, 16.0f, 1.3f);
+
+    // Build stamp, right-aligned clear of the right-hand screw.
+    g.setColour (kLegendDim.withAlpha (0.7f));
+    g.setFont (Font (FontOptions (9.5f)));
+    g.drawText ("version " DIRTY630_VERSION "  -  " DIRTY630_BUILD_TIME "  -  minus",
+                0, kHeaderH, getWidth() - 20, 14, Justification::centredRight);
+
+    // Section rail above the global row, stopping short of the MIX knob.
+    g.setColour (Colours::black.withAlpha (0.65f));
+    g.fillRect (0, 196, getWidth() - 160, 1);
+    g.setColour (Colours::white.withAlpha (0.06f));
+    g.fillRect (0, 197, getWidth() - 160, 1);
 }
 
 void Dirty630Editor::resized()
@@ -240,10 +356,10 @@ void Dirty630Editor::resized()
             x += knobW;
         }
         x += 10;
-        s.meter.setBounds (x, top + 50, getWidth() - x - 16, 40);
+        s.meter.setBounds (x, top + 42, getWidth() - x - 24, 56);
     };
 
-    layoutStrip (strip, 40);
+    layoutStrip (strip, kHeaderH + 16);
 
     // Bottom row: global and "dirt" controls.
     const int top = 206, knobW = 80, knobH = 68;

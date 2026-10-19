@@ -13,7 +13,7 @@
 [Setup]
 AppName=dirty630
 AppVersion={#Version}
-AppPublisher=minusro
+AppPublisher=minus
 DefaultDirName={commoncf64}\VST3
 DisableDirPage=yes
 DisableProgramGroupPage=yes

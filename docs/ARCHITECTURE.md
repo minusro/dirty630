@@ -68,7 +68,7 @@ state compatibility; the `B` set and `link` were removed in 0.2. All ranges:
 | attackA | 0.1…200 ms, skew 0.3 | 10 | time constant of the charge diode path |
 | releaseA | 50…3000 ms, skew 0.4 | 300 | |
 | outputA | ±20 dB | 0 | after coupling cap, before output op-amp |
-| peakA | bool | off | peak-hold cap in front of the RMS sensor |
+| peakA | bool | **on** | peak-hold cap in front of the RMS sensor; default since 0.5 |
 | softA | bool | off | 10 dB knee vs 0.5 dB |
 | gateThrA | −70…+10 dB | −70 (= Off) | |
 | gateRateA | 20…2000 ms, skew 0.4 | 100 | close time; open is fixed 0.5 ms |
@@ -97,7 +97,7 @@ the output is taken from channel A.
 
 980 × 300, fixed: one strip of controls plus the global/DIRT row, and a large
 MIX (dry/wet) knob in the bottom-right corner spanning both rows. The header
-shows `version <m.n[.p]>  -  <build date/time>  -  minusro`, stamped into
+shows `version <m.n[.p]>  -  <build date/time>  -  minus`, stamped into
 `BuildInfo.h` by `cmake/BuildInfo.cmake` on every build. `Dirty630LookAndFeel`
 draws rotary knobs (ring + cap + pointer), toggle buttons as rounded
 "switches", and `GrMeter` the 12-segment LED ladder (fed the max of the two
