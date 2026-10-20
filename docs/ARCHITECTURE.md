@@ -83,9 +83,10 @@ state compatibility; the `B` set and `link` were removed in 0.2. All ranges:
 | mix | 0…100 % | 100 | dry/wet; dry path latency-compensated by `juce::dsp::DryWetMixer` |
 | modded | bool | off | shown as **CLEAN**; THAT 2180 + op-amp swap: core errors ×0.03, rails 14.5 V. Id frozen at the old spelling |
 
-Programs: four host-visible presets (Default, Drum Bus Smash, NIN Bass,
-Snare Gate) that set only the strip controls plus mix, leaving calibration,
-DIRT and oversampling untouched (`kPresets` in `PluginProcessor.cpp`).
+Programs: five host-visible presets (Default, Drum Bus Smash, NIN Bass,
+Snare Gate, French House) that set only the strip controls plus mix, leaving
+calibration, DIRT and oversampling untouched (`kPresets` in
+`PluginProcessor.cpp`).
 
 ## Buses
 

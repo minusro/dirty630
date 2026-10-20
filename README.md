@@ -100,7 +100,8 @@ average, and leave **Thump** up — the knock it puts on the downbeat is part
 of why this unit is remembered. If the pumping is too much to sit behind a
 vocal, back it off with **Mix** instead of softening the compression.
 
-Four presets ship with it: Default, Drum Bus Smash, NIN Bass and Snare Gate.
+Five presets ship with it: Default, Drum Bus Smash, NIN Bass, Snare Gate
+and French House — the last being the pumping setting described above.
 
 What changed between versions is in [`CHANGELOG.md`](CHANGELOG.md).
 

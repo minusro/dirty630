@@ -6,6 +6,14 @@ plugin header at build time; the policy for bumping them is in `CLAUDE.md`.
 
 ## Unreleased
 
+## 0.6.1 — 2026-10-20
+
+- **New preset, French House**: the pumping setting the hardware is known
+  for — 8:1, fast attack, and a 150 ms release so the level is still
+  recovering when the next kick lands. Works on its own and harder with the
+  kick patched into the sidechain and EXT SC on. It is added at the end of
+  the list, so the other four keep the slots they had in 0.6.0.
+
 ## 0.6.0 — 2026-10-19
 
 First tagged release. Installers are attached to it; earlier versions were
