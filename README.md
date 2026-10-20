@@ -6,7 +6,23 @@ because it was not clean. VST3 and AU, macOS and Windows.
 
 ![The DIRTY630 plugin window](docs/editor.png)
 
-It is modelled from the circuit rather than fitted to a response, so the
+## Why this compressor
+
+It was built down to a price in 1989 and it sounds like it: noisy, coloured,
+and prone to a hard pumping action that most engineers were trying to avoid.
+French house went the other way and made that pumping the point. Feed the
+sidechain from the kick and everything else ducks and swells around it,
+which is the breathing, filtered-disco motion the records are built on.
+
+Daft Punk are the reason the box is remembered. By their own account the
+sound of *Homework* and *Discovery* came down to this compressor, and it is
+reported on Stardust's "Music Sounds Better With You" too — though at least
+one write-up notes a competing claim that a Behringer Composer was doing
+the work. Either way, a dirt-cheap unit with a bad reputation ended up
+defining the sound of a genre, which is reason enough to model it honestly
+rather than politely.
+
+So it is modelled from the circuit rather than fitted to a response, and the
 parts that misbehave misbehave for the right reasons: a dbx-style RMS
 sensor, a VCA with its symmetry and control-feedthrough errors, a
 diode-steered attack/release network, and op-amp stages that saturate at the
@@ -67,6 +83,22 @@ detector listens to the mono sum of the programme, or of the sidechain when
 feedthrough, heard as a knock on fast attacks; **Noise** is the output
 floor; **Mismatch** is how far the two channels drift apart. CLEAN overrides
 all three.
+
+### Getting the pump
+
+Put it across the track you want to move — a chord loop, a disco sample, the
+whole mix bus — and feed the kick to its sidechain input. Turn **EXT SC**
+on so the detector listens to the kick instead of the programme, then set a
+high ratio and pull the threshold down until each kick takes a visible bite
+out of the ladder. **Release** is the tempo control: long enough that the
+level is still climbing when the next kick lands, so the track breathes in
+time rather than recovering between hits. Around 100–300 ms suits four to
+the floor at house tempos.
+
+Keep **PEAK** on so the kick's transient triggers it rather than its
+average, and leave **Thump** up — the knock it puts on the downbeat is part
+of why this unit is remembered. If the pumping is too much to sit behind a
+vocal, back it off with **Mix** instead of softening the compression.
 
 Four presets ship with it: Default, Drum Bus Smash, NIN Bass and Snare Gate.
 
